@@ -5,7 +5,7 @@ import { isEmpty } from 'lodash'
 import { userSignUp } from '../../redux/actions/user'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { StyledButton } from '../Login/styles'
+// import { StyledButton } from '../Login/styles'
 import colors from '../../styles/colors'
 
 class SignUp extends Component {
@@ -117,7 +117,7 @@ class SignUp extends Component {
           </InputWrapper>
           {passwordError2 === 1 ? <ErrorText>{this.state.confirmPasswordError}</ErrorText> : null}
           {submitError === 1 ? <ErrorText>{this.state.submitErrorText}</ErrorText> : null}
-          <StyledButton onClick={() => this.onSubmit(this.props.login)}>Sign Up</StyledButton>
+          {/* <StyledButton onClick={() => this.onSubmit(this.props.login)}>Sign Up</StyledButton> */}
           <Link to="/login" style={{ backgroundColor: 'transparent' }}>
             <SignIn>Sign In</SignIn>
           </Link>

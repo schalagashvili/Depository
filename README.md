@@ -1,4 +1,4 @@
-# Foobar
+# Toptal Test Project
 
 Foobar is a Python library for dealing with word pluralization.
 
@@ -11,6 +11,16 @@ pip install foobar
 ```
 
 ## Usage
+
+```python
+import foobar
+
+foobar.pluralize('word') # returns 'words'
+foobar.pluralize('goose') # returns 'geese'
+foobar.singularize('phenomena') # returns 'phenomenon'
+```
+
+## Tests
 
 ```python
 import foobar

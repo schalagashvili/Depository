@@ -1,4 +1,17 @@
 {
   "app.title": "Welcome to react-intl",
-  "app.intro": "To get started, edit <code>src/App.js</code> and save to reload."
+  "app.intro": "To get started, edit <code>src/App.js</code> and save to reload.",
+  "userWelcomeTitle": "Welcome Back!",
+  "userWelcomeText": "To keep connected with us please login with your personal info",
+  "guestWelcomeTitle": "Hello, Friend!",
+  "guestWelcomeText": "Enter your personal details and start journey with us",
+  "signIn": "Sign In",
+  "signUp": "Sign Up",
+  "createAccount": "Create Account",
+  "loginTitle": "Log in to your account",
+  "registrationLabel": "or use your email for registration:",
+  "loginLabel": "or use your email account:",
+  "name": "Name",
+  "email": "Email",
+  "password": "Password"
 }
