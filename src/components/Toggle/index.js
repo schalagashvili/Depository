@@ -11,50 +11,46 @@ class Toggle extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { selectedLanguage: 'en' }
-
     this.enFlag = React.createRef()
     this.deFlag = React.createRef()
   }
 
   componentDidMount() {
-    const tl2 = new TimelineMax()
-    // this.setState({ selectedLanguage: this.props.cookies.get('language') })
+    this.clickAnimation()
+  }
+
+  clickAnimation = () => {
+    const tl = new TimelineMax()
     if (this.props.cookies.get('language') === 'en') {
-      tl2
-        .set(this.deFlag.current, { scale: 2 })
+      tl.set(this.deFlag.current, { scale: 2 })
         .to(this.enFlag.current, 0.5, { scale: 2 })
         .to(this.deFlag.current, 0.5, { scale: 1 }, 0)
     } else {
-      tl2
-        .set(this.enFlag.current, { scale: 2 })
+      tl.set(this.enFlag.current, { scale: 2 })
         .to(this.deFlag.current, 0.5, { scale: 2 })
         .to(this.enFlag.current, 0.5, { scale: 1 }, 0)
     }
   }
 
   changeLanguageHandler = language => {
-    const { selectedLanguage } = this.state
-    const tl = new TimelineMax()
-    if (language === 'en' && selectedLanguage !== 'en') {
-      tl.to(this.enFlag.current, 0.5, { scale: 2 }).to(this.deFlag.current, 0.5, { scale: 1 }, 0)
-    } else if (language === 'de' && selectedLanguage !== 'de') {
-      tl.to(this.deFlag.current, 0.5, { scale: 2 }).to(this.enFlag.current, 0.5, { scale: 1 }, 0)
-    }
-    this.setState({ selectedLanguage: language })
     this.props.switchLanguage(language)
     this.props.cookies.set('language', language)
-    // localStorage.setItem('language', language)
+    this.clickAnimation()
   }
 
   render() {
     return (
       <div style={{ justifyContent: 'center', display: 'flex', alignItems: 'center' }}>
         <div onClick={() => this.changeLanguageHandler('en')}>
-          <img src={usa} style={{ width: 20, height: 20 }} alt="usa" ref={this.enFlag} />
+          <img src={usa} style={{ width: 20, height: 20, cursor: 'pointer' }} alt="usa" ref={this.enFlag} />
         </div>
         <div onClick={() => this.changeLanguageHandler('de')}>
-          <img src={germany} style={{ width: 20, height: 20, marginLeft: 20 }} alt="usa" ref={this.deFlag} />
+          <img
+            src={germany}
+            style={{ width: 20, height: 20, marginLeft: 20, cursor: 'pointer' }}
+            alt="usa"
+            ref={this.deFlag}
+          />
         </div>
       </div>
     )

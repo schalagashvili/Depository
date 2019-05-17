@@ -38,6 +38,14 @@
   "jest": {
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
+    ],
+    "scriptPreprocessor": "./preprocessor.js",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/jspm_packages"
+    ],
+    "unmockedModulePathPatterns": [
+      "./node_modules/react"
     ]
   },
   "browserslist": [

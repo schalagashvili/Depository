@@ -65,16 +65,6 @@ class Login extends Component {
     this.email = React.createRef()
   }
 
-  // componentDidMount() {
-  //   console.log(this.state.name)
-  //   const { cookies } = this.props
-
-  //   return cookies.set('name', 'hello world', { path: '/' })
-  // }
-  componentDidUpdate() {
-    console.log('updated')
-  }
-
   onEmailChange(e) {
     const email = e.target.value
     this.setState({ email })
