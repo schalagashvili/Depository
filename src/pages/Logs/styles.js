@@ -3,12 +3,14 @@ import colors from '../../styles/colors'
 import sizes from '../../styles/sizes'
 
 export const Wrapper = styled.div`
-  background-color: #f5f6fa;
+  background-color: #eff3f9;
   display: flex;
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
   overflow: hidden;
+  padding-left: 270px;
+  padding-bottom: 100px;
 `
 
 export const Header = styled.div`
@@ -72,16 +74,18 @@ export const Title = styled.div`
 `
 
 export const InnerWrapper = styled.div`
-  max-width: 700px;
+  max-width: 1100px;
   width: 100%;
-  margin: 20px auto;
+  margin: 0 auto;
 `
 
 export const Records = styled.div`
   display: flex;
-  margin: 8px;
   flex-direction: column;
-  border-radius: ${sizes.borderRadius};
+  border-radius: 20px;
+  background-color: white;
+  overflow: hidden;
+  box-shadow: 0 1px 25px rgba(0, 0, 0, 0.05);
 `
 
 export const AddRecordButton = styled.div`

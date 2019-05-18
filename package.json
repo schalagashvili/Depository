@@ -17,6 +17,7 @@
     "react-cookie": "^4.0.0",
     "react-dom": "^16.5.2",
     "react-fontawesome": "^1.6.1",
+    "react-google-charts": "^3.0.13",
     "react-intl": "^2.8.0",
     "react-redux": "^6.0.0",
     "react-router-dom": "^4.3.1",

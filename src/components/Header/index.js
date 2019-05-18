@@ -3,50 +3,38 @@ import { Button } from '../../styles/mixins'
 import { Wrapper, ButtonsWrapper, CalorieInfo } from './styles'
 import moment from 'moment-timezone'
 import colors from '../../styles/colors'
+import profile from '../../assets/images/profile.png'
 
 class Header extends Component {
   render() {
-    const { totalCalories, expectedCalories, editOpenHandler, toggleDrawer, fromTime, toTime, fromDate, toDate } = this.props
-
     return (
       <Wrapper>
-        <ButtonsWrapper>
-          <Button
-            color={colors.green}
-            onClick={() => {
-              editOpenHandler(true)
-              toggleDrawer('addBottom', true)
-            }}
-          >
-            Add
-          </Button>
-          <Button
-            color={colors.blue}
-            onClick={() => {
-              toggleDrawer('filterBottom', true)
-            }}
-          >
-            Filter
-          </Button>
-          <Button
-            color={colors.pink}
-            onClick={() => {
-              toggleDrawer('settingsBottom', true)
-            }}
-          >
-            Settings
-          </Button>
-        </ButtonsWrapper>
-        <CalorieInfo>
-          <div>
-            From time {moment(fromDate).format('DD MMM YYYY')} {fromTime} to date {moment(toDate).format('DD MMM YYYY')}
-          </div>
-          <div>
-            from time {fromTime} to time {toTime}
-          </div>
-          <div style={{ fontSize: 13, color: 'grey' }}>Expected Calories: {expectedCalories}</div>
-          <div style={{ fontSize: 13, color: 'grey', borderLeft: '1px solid grey' }}>Total: {totalCalories}</div>
-        </CalorieInfo>
+        <img
+          src={profile}
+          alt="profileImage"
+          style={{
+            width: 55,
+            height: 55,
+            borderRadius: 55,
+            // border: '5px solid white',
+            boxShadow: '0 1px 15px rgba(0, 0, 0, 0.1)'
+          }}
+        />
+        <div
+          style={{
+            marginLeft: 10,
+            color: 'grey',
+            display: 'flex',
+            marginRight: 6,
+            cursor: 'pointer',
+            paddingTop: 10,
+            paddingBottom: 10
+          }}
+        >
+          <div style={{ width: 6, height: 6, borderRadius: 6, backgroundColor: 'black', marginLeft: 4 }} />
+          <div style={{ width: 6, height: 6, borderRadius: 6, backgroundColor: 'black', marginLeft: 4 }} />
+          <div style={{ width: 6, height: 6, borderRadius: 6, backgroundColor: 'black', marginLeft: 4 }} />
+        </div>
       </Wrapper>
     )
   }

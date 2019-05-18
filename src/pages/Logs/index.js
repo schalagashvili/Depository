@@ -2,7 +2,18 @@ import React, { Component } from 'react'
 import moment from 'moment-timezone'
 import { Wrapper, InnerWrapper, Records } from './styles'
 import { Button } from '../../styles/mixins'
-import { Filter, Record, Settings, AddRecord, Header, TableHeader } from '../../components'
+import {
+  Filter,
+  Record,
+  Settings,
+  AddRecord,
+  Header,
+  TableHeader,
+  Sidebar,
+  WelcomeHeader,
+  Chart,
+  Brief
+} from '../../components'
 import BaseHeader from '../../components/BaseHeader'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
@@ -22,7 +33,13 @@ class Logs extends Component {
     this.state = {
       expectedCalories: 0,
       totalCalories: 0,
-      mealLogs: [],
+      mealLogs: [
+        { title: 'sandro' },
+        { title: 'sandro' },
+        { title: 'sandro' },
+        { title: 'sandro' },
+        { title: 'sandro' }
+      ],
       fromDate: yesterday,
       toDate: dateNow,
       addBottom: false,
@@ -48,8 +65,8 @@ class Logs extends Component {
 
     const user = this.props.userInfo.user
     this.setState({
-      expectedCalories: user.expectedCalories,
-      email: user.email
+      expectedCalories: 100,
+      email: 'schal@gmail.com'
     })
 
     await this.props.getMealLogs(fromDate, toDate, fromTime, toTime, page, userId, token)
@@ -60,7 +77,7 @@ class Logs extends Component {
       mealLogs.map(log => (totalCalories += log.calories))
     }
     this.setState({
-      mealLogs: mealLogs != null ? mealLogs.reverse() : [],
+      // mealLogs: mealLogs != null ? mealLogs.reverse() : [],
       totalCalories,
       logsCount: this.props.mealLogs.logsCount,
       page: this.state.page + 1
@@ -294,6 +311,10 @@ class Logs extends Component {
             toDate={this.state.toDate}
             totalCalories={this.state.totalCalories}
           />
+          <WelcomeHeader />
+          <Brief />
+          <Chart />
+
           <Records>
             <TableHeader />
             {this.renderRecords()}

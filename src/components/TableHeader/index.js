@@ -3,14 +3,19 @@ import { Wrapper } from './styles'
 
 class TableHeader extends Component {
   render() {
-
     return (
-      <Wrapper>
-        <div>Meal</div>
-        <div>Calories</div>
-        <div>Date</div>
-        <div>Time</div>
-      </Wrapper>
+      <div>
+        <div style={{ fontWeight: 900, fontSize: 25, padding: '20px 42px 10px' }}>Deposits</div>
+        <Wrapper>
+          <div>Bank Name</div>
+          <div>Account #</div>
+          <div>Amount</div>
+          <div>Start Date</div>
+          <div>End Date</div>
+          <div>Intereset %</div>
+          <div>Tax %</div>
+        </Wrapper>
+      </div>
     )
   }
 }

@@ -8,14 +8,24 @@ import colors from '../../styles/colors'
 
 class RecordItem extends Component {
   render() {
-    const { totalCalories, expectedCalories, calories, title, id, editOpenHandler, handleChange, onDelete, date } = this.props
+    const {
+      totalCalories,
+      expectedCalories,
+      calories,
+      title,
+      id,
+      editOpenHandler,
+      handleChange,
+      onDelete,
+      date
+    } = this.props
 
     return (
       <Record key={id}>
         {totalCalories > expectedCalories ? (
           <FontAwesomeIcon icon={faExclamationCircle} style={{ color: colors.pink, marginRight: 15 }} />
         ) : (
-          <FontAwesomeIcon icon={faCheckCircle} style={{ color: colors.black , marginRight: 15 }} />
+          <FontAwesomeIcon icon={faCheckCircle} style={{ color: '#38ba8a', marginRight: 15 }} />
         )}
         <Title>{title}</Title>
         <Calories>{calories}</Calories>

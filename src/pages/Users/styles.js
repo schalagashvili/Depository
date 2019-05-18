@@ -81,7 +81,6 @@ export const InnerWrapper = styled.div`
 export const Record = styled.div`
   display: flex;
   padding: 15px;
-  margin-top: 10px;
   background-color: white;
   color: black;
   justify-content: space-between;

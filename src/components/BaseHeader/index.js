@@ -14,7 +14,7 @@ export default class BaseHeader extends React.Component {
 
     return (
       <Header>
-        {(role === 'admin' || role === 'manager') && (
+        {/* {(role === 'admin' || role === 'manager') && (
           <div>
             {window.location.pathname === '/logs' ? (
               <Link to="/users">
@@ -29,7 +29,7 @@ export default class BaseHeader extends React.Component {
         )}
         <Button onClick={() => this.onLogout()} logout color={colors.pink}>
           Logout
-        </Button>
+        </Button> */}
       </Header>
     )
   }

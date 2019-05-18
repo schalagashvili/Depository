@@ -11,6 +11,10 @@ import AddUser from './AddUser'
 import BaseHeader from './BaseHeader'
 import Toggle from './Toggle'
 import ErrorBox from './ErrorBox'
+import Sidebar from './Sidebar'
+import Chart from './Chart'
+import Brief from './Brief'
+import WelcomeHeader from './WelcomeHeader'
 
 export {
   InputField,
@@ -25,5 +29,9 @@ export {
   AddUser,
   BaseHeader,
   Toggle,
-  ErrorBox
+  ErrorBox,
+  Sidebar,
+  WelcomeHeader,
+  Chart,
+  Brief
 }
