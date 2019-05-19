@@ -19,8 +19,6 @@ import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { addMealLog, editMealLog, getMealLogs, removeMealLog } from '../../redux/actions/record'
 import { getUser, editUserCalories } from '../../redux/actions/user'
-import filter from '../../assets/images/filter.png'
-import { TimelineMax, TweenMax, Power4 } from 'gsap'
 
 class Logs extends Component {
   constructor(props) {
@@ -31,8 +29,6 @@ class Logs extends Component {
       .subtract(1, 'days')
       .toISOString()
       .substr(0, 10)
-
-    this.myRef = React.createRef()
 
     this.state = {
       expectedCalories: 0,
@@ -253,12 +249,6 @@ class Logs extends Component {
     this.setState({ mealLogs, totalCalories, logsCount: this.state.logsCount - 1 })
   }
 
-  openFilter = () => {
-    var tl = new TimelineMax()
-
-    tl.to(this.myRef.current, 0.3, { top: 0 })
-  }
-
   renderRecords() {
     let { mealLogs, totalCalories, expectedCalories } = this.state
 
@@ -286,65 +276,17 @@ class Logs extends Component {
   }
 
   render() {
-    const { settingsBottom, logsCount, mealLogs, page } = this.state
-    const dietBroken = this.state.totalCalories > this.state.expectedCalories
     return (
       <Wrapper>
-        <BaseHeader role={this.props.role} onLogout={this.props.logout} />
-        <Settings
-          updateExpectedCalories={this.updateExpectedCalories}
-          onExpectedCaloriesChange={this.onExpectedCaloriesChange}
-          dietBroken={dietBroken}
-          expectedCalories={this.state.expectedCalories}
-          handleChange={this.handleChange}
-          totalCalories={this.state.totalCalories}
-          settingsBottom={settingsBottom}
-        />
-        {this.addRecord()}
         <InnerWrapper>
-          {/* <Header
-            toggleDrawer={this.handleChange}
-            editOpenHandler={this.editOpenHandler}
-            expectedCalories={this.state.expectedCalories}
-            fromTime={this.state.fromTime}
-            toTime={this.state.toTime}
-            fromDate={this.state.fromDate}
-            toDate={this.state.toDate}
-            totalCalories={this.state.totalCalories}
-          /> */}
-          <WelcomeHeader text="Revenue Report" />
+          <WelcomeHeader text="Welcome Back Admin!" />
           <Brief />
+          <Chart />
 
           <Records>
-            <div
-              style={{
-                position: 'absolute',
-                top: 500,
-                left: 0,
-                width: 1100,
-                height: 475,
-                backgroundColor: 'white',
-                zIndex: 2
-              }}
-              ref={this.myRef}
-            >
-              <Filter />
-            </div>
-            <img
-              src={filter}
-              style={{ width: 25, height: 25, position: 'absolute', right: 30, top: 25, cursor: 'pointer', zIndex: 1 }}
-              alt="filter"
-              onClick={this.openFilter}
-            />
             <TableHeader />
             {this.renderRecords()}
-            {logsCount > mealLogs.length && (
-              <Button onClick={() => this.loadMore(page)} color="lightGreen">
-                More
-              </Button>
-            )}
           </Records>
-          <Chart />
         </InnerWrapper>
       </Wrapper>
     )

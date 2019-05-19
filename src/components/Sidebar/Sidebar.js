@@ -3,6 +3,9 @@ import settings from '../../assets/images/settings.png'
 import home from '../../assets/images/home.png'
 import logout from '../../assets/images/logout.png'
 import users from '../../assets/images/users.png'
+import profile from '../../assets/images/profile.png'
+import report from '../../assets/images/report.png'
+import calculator from '../../assets/images/calculator.png'
 
 class Sidebar extends Component {
   render() {
@@ -24,7 +27,18 @@ class Sidebar extends Component {
         <div
           style={{ fontFamily: 'NunitoExtraBold', fontSize: 35, textAlign: 'center', marginTop: 70, color: '#38ba8a' }}
         >
-          Logoo
+          <img
+            src={profile}
+            alt="profileImage"
+            style={{
+              width: 110,
+              height: 110,
+              borderRadius: 110,
+              // border: '5px solid white',
+              boxShadow: '0 1px 25px rgba(0, 0, 0, 0.25)'
+            }}
+          />
+          <div style={{ color: 'grey', fontSize: 14 }}>Hello Sandro!</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: 30, marginLeft: 50 }}>
           <div
@@ -77,8 +91,21 @@ class Sidebar extends Component {
               cursor: 'pointer'
             }}
           >
-            <img src={settings} style={{ width: 30, marginRight: 15, height: 30 }} />
+            <img src={calculator} style={{ width: 30, marginRight: 15, height: 30 }} />
             Calculator
+          </div>
+          <div
+            style={{
+              marginTop: 35,
+              alignItems: 'center',
+              display: 'flex',
+              paddingTop: 5,
+              paddingBottom: 5,
+              cursor: 'pointer'
+            }}
+          >
+            <img src={report} style={{ width: 30, marginRight: 15, height: 30 }} />
+            Rev. Report
           </div>
         </div>
         <div

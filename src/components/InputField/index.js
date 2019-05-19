@@ -1,18 +1,33 @@
 import React from 'react'
 
 function InputField(props) {
+  let unit, value
+  if (!props.unit) {
+    unit = ''
+  } else {
+    if (props.unit === '$') {
+      unit = `${props.unit} ${props.value}`
+    } else {
+      unit = `${props.value} ${props.unit}`
+    }
+  }
+
+  if (props.value && props.value > 1000) {
+    // value =
+  }
+
   return (
-    <div style={{ marginTop: 45 }}>
+    <div style={{ marginTop: props.marginTop || 45 }}>
       <div style={{ fontSize: 14, color: '#727272', marginBottom: 7, marginLeft: 5 }}>{props.title}</div>
       <input
+        disabled={props.disabled}
+        value={unit}
         style={{
-          width: 350,
-          height: 55,
+          width: props.width || 350,
+          height: props.height || 55,
           borderRadius: 5,
           boxShadow: '0 1px 5px rgba(0, 0, 0, 0.15)',
           border: 'none',
-          // border: '2px solid #F1F1F1',
-          // backgroundColor: '#FBFBFB',
           textAlign: 'center',
           fontSize: 16,
           outline: 'none'

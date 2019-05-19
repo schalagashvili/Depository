@@ -1,252 +1,304 @@
 import React, { Component } from 'react'
+import moment from 'moment-timezone'
+import { Wrapper, InnerWrapper, Records } from './styles'
+import { Button } from '../../styles/mixins'
 import {
-  Wrapper,
-  Add,
-  AddContainer,
-  InnerWrapper,
+  Filter,
   Record,
-  Records,
-  IconsWrapper,
-  RecordsHeader,
-  Role,
-  Buttons
-} from './styles'
-import { DeleteIcon, EditIcon } from '../../assets/icons'
-import { Input, Button } from '../../styles/mixins'
-import Drawer from '@material-ui/core/Drawer'
-import { BaseHeader, AddUser } from '../../components'
-import { isEmpty } from 'lodash'
-import { deleteUser, getAllUsers, editUser, addNewUser } from '../../redux/actions/user'
+  Settings,
+  AddRecord,
+  Header,
+  TableHeader,
+  Sidebar,
+  WelcomeHeader,
+  Chart,
+  Brief
+} from '../../components'
+import BaseHeader from '../../components/BaseHeader'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import colors from '../../styles/colors'
+import { addMealLog, editMealLog, getMealLogs, removeMealLog } from '../../redux/actions/record'
+import { getUser, editUserCalories } from '../../redux/actions/user'
 
-class Home extends Component {
-  state = {
-    isEditUserShowing: false,
-    isAdd: true,
-    addEmail: null,
-    addPassword: null,
-    addRole: 'regular',
-    viewEmail: null,
-    viewRole: null,
-    viewId: null,
-    addBottom: false,
-    editBottom: false,
-    users: [],
-    usersCount: 0,
-    page: 1
+class Logs extends Component {
+  constructor(props) {
+    super(props)
+    const timeNow = new Date().toTimeString().substr(0, 5)
+    const dateNow = new Date().toISOString().substr(0, 10)
+    const yesterday = moment()
+      .subtract(1, 'days')
+      .toISOString()
+      .substr(0, 10)
+
+    this.state = {
+      expectedCalories: 0,
+      totalCalories: 0,
+      mealLogs: [
+        { title: 'sandro' },
+        { title: 'sandro' },
+        { title: 'sandro' },
+        { title: 'sandro' },
+        { title: 'sandro' }
+      ],
+      fromDate: yesterday,
+      toDate: dateNow,
+      addBottom: false,
+      settingsBottom: false,
+      filterBottom: false,
+      page: 1,
+      today: dateNow,
+      logsCount: 0,
+      addTitle: '',
+      addCalories: '',
+      addDate: dateNow,
+      addTime: timeNow,
+      fromTime: timeNow,
+      toTime: timeNow
+    }
   }
 
   async componentDidMount() {
-    const { token, role, page } = this.props
-    if (role !== 'admin' && role !== 'manager') {
-      // history.push('/logs')
-    } else {
-      await this.props.getAllUsers(token, page)
-
-      this.setState({
-        users: this.props.allUsers.users || [],
-        page: this.state.page + 1,
-        usersCount: this.props.allUsers.usersCount
-      })
-    }
-  }
-
-  onAddNewUser = async () => {
-    const { addEmail, addPassword, addRole } = this.state
-
-    if (addEmail === null || addPassword === null) {
-      return this.setState({ addError: 'Please fill fields' })
-    }
-
-    await this.props.addNewUser(addEmail, addPassword, addRole, this.props.token)
-    if (!isEmpty(this.props.newUser)) {
-      const _id = this.props.newUser._id
-      let users = this.state.users
-      users.push({ _id, email: addEmail, role: addRole })
-      const updatedUsers = [{ _id, email: addEmail, role: addRole }, ...users]
-      this.setState({
-        users: updatedUsers,
-        addError: null,
-        addEmail: null,
-        addPassword: null,
-        addRole: 'regular',
-        addBottom: false
-      })
-    } else {
-      this.setState({ addError: this.props.addUserError.response.error })
-    }
-  }
-
-  onEditUser = () => {
-    const { viewRole, viewId, users, viewEmail } = this.state
     const token = this.props.token
-    this.props.editUser(viewId, token, viewRole)
+    const userId = this.props.match.params.userId
+    const { fromDate, toDate, fromTime, toTime, page } = this.state
+    await this.props.getUser(userId, token)
 
-    const targetIndex = users.findIndex(user => user._id === viewId)
-    users[targetIndex] = { _id: viewId, email: viewEmail, role: viewRole }
-    this.setState({ users, viewId: null, viewEmail: '', viewRole: 'regular', editBottom: false })
-  }
+    const user = this.props.userInfo.user
+    this.setState({
+      expectedCalories: 100,
+      email: 'schal@gmail.com'
+    })
 
-  onEmailChange = e => {
-    const email = e.target.value
-    // if (!validateEmail(email)) {
-    //   this.setState({ emailErrorText: '* Please input valid email', emailError: 1 })
-    // } else {
-    //   this.setState({ addEmail: email, emailErrorText: '', emailError: 0 })
-    // }
-  }
+    await this.props.getMealLogs(fromDate, toDate, fromTime, toTime, page, userId, token)
 
-  onPasswordChange = e => {
-    const password = e.target.value
-    if (password == null || password.length < 6) {
-      this.setState({
-        passwordErrorText: '* Password length should be 6 or more',
-        passwordError: 1
-      })
-    } else {
-      this.setState({ addPassword: password, passwordErrorText: '', passwordError: 0 })
+    let totalCalories = 0
+    const mealLogs = this.props.mealLogs.logs
+    if (mealLogs != null) {
+      mealLogs.map(log => (totalCalories += log.calories))
     }
-  }
-
-  editOpenHandler = (id, email, role) => {
-    this.setState({ editBottom: true, viewEmail: email, viewRole: role, viewId: id })
-  }
-
-  drawerHandler = () => {
-    this.setState({ addBottom: false })
-  }
-
-  onUserClick = id => {
-    if (this.props.role === 'admin') {
-      // history.push(`/logs/${id}`)
-    }
-  }
-
-  loadMore = async () => {
-    const { token } = this.props
-    const { page } = this.state
-
-    await this.props.getAllUsers(token, page)
-
-    const mergedUsers = this.state.users.concat(this.props.allUsers.users)
-    this.setState({ users: mergedUsers, page: this.state.page + 1, usersCount: this.props.allUsers.usersCount })
-  }
-
-  renderUsers = originalEmail => {
-    const users = this.state.users || []
-
-    if (users.length === 0) {
-      return <div>No users to show</div>
-    }
-
-    return users.map(user => {
-      let { email, role, _id } = user
-      if (email === originalEmail) return null
-      if (this.props.role === 'manager' && role === 'admin') return null
-      return (
-        <Record key={_id}>
-          <div onClick={() => this.onUserClick(_id)} style={{ flex: 1, cursor: 'pointer' }}>
-            {email}
-          </div>
-          <div style={{ flex: 1 }}>{role}</div>
-          <IconsWrapper style={{ flex: 0.2, cursor: 'pointer' }}>
-            <div onClick={() => this.editOpenHandler(_id, email, role)}>
-              <EditIcon width={13} height={13} color="gray" />
-            </div>
-            <div onClick={() => this.onDelete(_id)} style={{ cursor: 'pointer' }}>
-              <DeleteIcon width={11} height={11} color="red" s />
-            </div>
-          </IconsWrapper>
-        </Record>
-      )
+    this.setState({
+      // mealLogs: mealLogs != null ? mealLogs.reverse() : [],
+      totalCalories,
+      logsCount: this.props.mealLogs.logsCount,
+      page: this.state.page + 1
     })
   }
 
-  onRoleChange = (e, isView) => {
-    if (isView) {
-      return this.setState({ viewRole: e.target.value })
+  loadMore = async page => {
+    const { fromDate, toDate, fromTime, toTime } = this.state
+    const token = this.props.token
+    const userId = this.props.match.params.userId
+
+    await this.props.getMealLogs(fromDate, toDate, fromTime, toTime, page, userId, token)
+    let totalCalories = 0
+    const mealLogs = this.props.mealLogs.logs
+    if (mealLogs != null) {
+      mealLogs.map(log => (totalCalories += log.calories))
     }
-    this.setState({ addRole: e.target.value })
+    const mergedLogs = this.state.mealLogs.concat(mealLogs)
+    this.setState({
+      mealLogs: mergedLogs,
+      page: this.state.page + 1
+    })
+  }
+
+  onSearch = async () => {
+    const token = this.props.token
+    const userId = this.props.match.params.userId
+    const { fromDate, toDate, fromTime, toTime, page } = this.state
+    await this.props.getMealLogs(fromDate, toDate, fromTime, toTime, page, userId, token)
+
+    let totalCalories = 0
+    const mealLogs = this.props.mealLogs.logs
+    if (mealLogs != null) {
+      mealLogs.map(log => (totalCalories += log.calories))
+    }
+    this.setState({
+      mealLogs: mealLogs != null ? mealLogs.reverse() : [],
+      totalCalories,
+      logsCount: this.props.mealLogs.logsCount,
+      page: 1
+    })
+  }
+
+  editOpenHandler = (isAdd, id) => {
+    if (isAdd) {
+      const addDate = new Date().toISOString().substr(0, 10)
+      const addTime = new Date().toTimeString().substr(0, 5)
+      this.setState({ isAdd, addDate, addTime })
+    } else {
+      const editLog = this.state.mealLogs.filter(log => log._id === id)[0]
+      const addDate = new Date(editLog.date).toISOString().substr(0, 10)
+      const addTime = new Date(editLog.date).toTimeString().substr(0, 5)
+      this.setState({
+        editId: id,
+        isAdd,
+        addDate,
+        addTime,
+        addTitle: editLog.title,
+        addCalories: editLog.calories
+      })
+    }
+  }
+
+  onExpectedCaloriesChange = calories => {
+    if (calories < 0) {
+      calories *= -1
+    }
+    this.setState({ expectedCalories: calories })
+  }
+
+  updateExpectedCalories = () => {
+    const { expectedCalories } = this.state
+    const token = this.props.token
+    const userId = this.props.match.params.userId
+
+    this.props.editUserCalories(userId, token, expectedCalories)
+  }
+
+  onAddCaloriesChange = e => {
+    let calories = e.target.value
+    if (calories < 0) {
+      calories *= -1
+    }
+    this.setState({ addCalories: parseFloat(calories) })
+  }
+
+  onSave = async () => {
+    let { addDate, addTime, addTitle, addCalories, isAdd, editId } = this.state
+    const token = this.props.token
+
+    if (addTitle === '' || addCalories === '') {
+      return this.setState({ saveError: 1, saveErrorText: 'Please fill all fields' })
+    }
+
+    var currentDate = moment(this.state.today)
+    var selectedDate = moment(this.state.addDate)
+    const isFutureDate = currentDate.diff(selectedDate, 'days')
+    if (isFutureDate < 0) {
+      return this.setState({ saveError: 1, saveErrorText: 'Can`t add meal for future dates' })
+    }
+
+    this.setState({ addDate: '', addTime: '', addTitle: '', addCalories: '', saveError: null, addBottom: false })
+    const datetime = moment(`${addDate} ${addTime}`)
+    const userId = this.props.match.params.userId
+    let mealLogs = this.state.mealLogs
+    let totalCalories = 0
+    if (isAdd) {
+      await this.props.addMealLog(addTitle, addCalories, datetime, token, userId)
+
+      mealLogs = 10
+      if (mealLogs != null) {
+        mealLogs.map(log => (totalCalories += log.calories))
+      }
+      const meals = mealLogs.slice(0, 9)
+      this.setState({ mealLogs: meals, totalCalories })
+    } else {
+      await this.props.editMealLog(addTitle, addCalories, datetime, this.props.token, userId, editId)
+
+      const editedLogIndex = mealLogs.findIndex(log => log._id === editId)
+      if (editedLogIndex === -1) {
+        return
+      }
+      mealLogs[editedLogIndex] = {
+        _id: this.state.editId,
+        title: addTitle,
+        calories: addCalories,
+        date: datetime
+      }
+      if (mealLogs != null) {
+        mealLogs.map(log => (totalCalories += log.calories))
+      }
+      this.setState({ mealLogs, totalCalories })
+    }
+  }
+
+  addRecord = () => {
+    return (
+      <AddRecord
+        addBottom={this.state.addBottom}
+        isAdd={this.state.isAdd}
+        addTime={this.state.addTime}
+        addDate={this.state.addDate}
+        handleChange={this.handleChange}
+        addTitle={this.state.addTitle}
+        onAddCaloriesChange={this.onAddCaloriesChange}
+        saveError={this.state.saveError}
+        saveErrorText={this.state.saveErrorText}
+        onSave={this.onSave}
+        addCalories={this.state.addCalories}
+      />
+    )
+  }
+
+  handleChange = (state, value) => {
+    this.setState({ [state]: value })
   }
 
   onDelete = id => {
-    this.props.deleteUser(id, this.props.token)
-    let users = this.state.users
-    users = users.filter(user => user._id !== id)
-    this.setState({ users })
+    const userId = this.props.match.params.userId
+
+    this.props.removeMealLog(userId, this.props.token, id)
+
+    let mealLogs = this.state.mealLogs
+    mealLogs = mealLogs.filter(log => log._id !== id)
+    let totalCalories = 0
+    if (mealLogs != null) {
+      mealLogs.map(log => (totalCalories += log.calories))
+    }
+    this.setState({ mealLogs, totalCalories, logsCount: this.state.logsCount - 1 })
+  }
+
+  renderRecords() {
+    let { mealLogs, totalCalories, expectedCalories } = this.state
+
+    if (mealLogs.length === 0) {
+      return <div>No logs to show</div>
+    }
+
+    return mealLogs.map(log => {
+      let { date, calories, title, _id } = log
+      date = moment(date).format('YYYY-MM-DD HH:mm')
+      return (
+        <Record
+          totalCalories={totalCalories}
+          expectedCalories={expectedCalories}
+          calories={calories}
+          title={title}
+          id={_id}
+          editOpenHandler={this.editOpenHandler}
+          handleChange={this.handleChange}
+          onDelete={this.onDelete}
+          date={date}
+        />
+      )
+    })
   }
 
   render() {
     return (
       <Wrapper>
-        <BaseHeader role={this.props.role} onLogout={this.props.ogout} />
-        <AddUser
-          addBottom={this.state.addBottom}
-          emailError={this.state.emailError}
-          passwordError={this.state.passwordError}
-          role={this.props.role}
-          addRole={this.state.addRole}
-          addError={this.state.addError}
-          emailErrorText={this.state.emailErrorText}
-          passwordErrorText={this.state.passwordErrorText}
-          onEmailChange={this.onEmailChange}
-          onPasswordChange={this.onPasswordChange}
-          onRoleChange={this.onRoleChange}
-          onAddNewUser={this.onAddNewUser}
-          drawerHandler={this.drawerHandler}
-          loading={this.props.addUserLoading}
-        />
-        <Drawer anchor="bottom" open={this.state.editBottom}>
-          <Add id="edit-user">
-            <InnerWrapper>
-              <AddContainer>
-                <RecordsHeader>Edit User</RecordsHeader>
-                <Input disabled value={this.state.viewEmail || ''} placeholder="Email" type="email" />
-                {this.props.role === 'admin' ? (
-                  <Role>
-                    <span>Role: </span>
-                    <select value={this.state.viewRole || 'regular'} onChange={e => this.onRoleChange(e, true)}>
-                      <option value="regular">Regular</option>
-                      <option value="manager">Manager</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </Role>
-                ) : (
-                  <Role>
-                    <span>Role: </span>
-                    <select value={this.state.viewRole || 'regular'} onChange={e => this.onRoleChange(e, true)}>
-                      <option value="regular">Regular</option>
-                      <option value="manager">Manager</option>
-                    </select>
-                  </Role>
-                )}
-                <Buttons>
-                  <Button color={colors.pink} onClick={() => this.onEditUser()}>
-                    Save
-                  </Button>
-
-                  <div onClick={() => this.setState({ editBottom: false })} style={{ cursor: 'pointer' }}>
-                    Close
-                  </div>
-                </Buttons>
-              </AddContainer>
-            </InnerWrapper>
-          </Add>
-        </Drawer>
         <InnerWrapper>
-          <Button color={colors.green} onClick={() => this.setState({ addBottom: true })}>
-            Add New
-          </Button>
+          <WelcomeHeader text="Manage People" />
           <Records>
-            <RecordsHeader>Users</RecordsHeader>
-            {this.renderUsers(this.props.email)}
-            {this.state.usersCount > this.state.users.length && (
-              <Button onClick={() => this.loadMore()} color="lightGreen">
-                More
-              </Button>
-            )}
+            <div style={{ position: 'relative' }}>
+              <div style={{ fontWeight: 900, fontSize: 25, padding: '20px 42px 10px' }}>Users</div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: 12,
+                  color: 'grey',
+                  padding: '10px 37px 5px 45px',
+                  borderBottom: '2px solid #eff3f9'
+                }}
+              >
+                <div>Name</div>
+                <div>Role</div>
+                <div>Email</div>
+              </div>
+            </div>
+            {this.renderRecords()}
           </Records>
         </InnerWrapper>
       </Wrapper>
@@ -256,25 +308,25 @@ class Home extends Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    deleteUser: bindActionCreators(deleteUser, dispatch),
-    getAllUsers: bindActionCreators(getAllUsers, dispatch),
-    editUser: bindActionCreators(editUser, dispatch),
-    addNewUser: bindActionCreators(addNewUser, dispatch)
+    getUser: bindActionCreators(getUser, dispatch),
+    getMealLogs: bindActionCreators(getMealLogs, dispatch),
+    addMealLog: bindActionCreators(addMealLog, dispatch),
+    editMealLog: bindActionCreators(editMealLog, dispatch),
+    removeMealLog: bindActionCreators(removeMealLog, dispatch),
+    editUserCalories: bindActionCreators(editUserCalories, dispatch)
   }
 }
 
 const mapStateToProps = state => {
   return {
     mealLogs: state.record.data,
-    allUsers: state.user.data,
-    newUser: state.user.data,
-    addUserError: state.user.errors,
-    addUserLoading: state.user.loading
+    userInfo: state.user.data,
+    newMealLog: state
   }
 }
 
-const HomeComponent = connect(
+const LogsComponent = connect(
   mapStateToProps,
   mapDispatchToProps
-)(Home)
-export default HomeComponent
+)(Logs)
+export default LogsComponent

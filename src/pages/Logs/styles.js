@@ -83,6 +83,7 @@ export const Records = styled.div`
   display: flex;
   flex-direction: column;
   border-radius: 20px;
+  position: relative;
   background-color: white;
   overflow: hidden;
   box-shadow: 0 1px 25px rgba(0, 0, 0, 0.05);

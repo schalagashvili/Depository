@@ -15,6 +15,7 @@ import Sidebar from './Sidebar'
 import Chart from './Chart'
 import Brief from './Brief'
 import WelcomeHeader from './WelcomeHeader'
+import Slider from './Slider'
 
 export {
   InputField,
@@ -33,5 +34,6 @@ export {
   Sidebar,
   WelcomeHeader,
   Chart,
-  Brief
+  Brief,
+  Slider
 }

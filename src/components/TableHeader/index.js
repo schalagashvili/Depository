@@ -4,7 +4,7 @@ import { Wrapper } from './styles'
 class TableHeader extends Component {
   render() {
     return (
-      <div>
+      <div style={{ position: 'relative' }}>
         <div style={{ fontWeight: 900, fontSize: 25, padding: '20px 42px 10px' }}>Deposits</div>
         <Wrapper>
           <div>Bank Name</div>

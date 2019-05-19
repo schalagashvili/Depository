@@ -10,6 +10,7 @@ class Header extends Component {
           overflow: 'hidden',
           marginBottom: 40,
           padding: 40,
+          marginTop: 40,
           backgroundColor: 'white',
           height: 380,
           boxShadow: '0 1px 25px rgba(0, 0, 0, 0.05)'

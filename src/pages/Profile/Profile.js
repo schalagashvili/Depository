@@ -64,20 +64,24 @@ class Profile extends Component {
             <InputField title="Location" />
           </div>
           <div
-            style={{
-              borderRadius: 40,
-              backgroundImage: 'linear-gradient(253deg, #3ba5b4 0,#38ba8a 0% )',
-              boxShadow: '0 1px 14px rgba(0, 0, 0, 0.18)',
-              padding: '10px 20px',
-              color: 'white',
-              marginLeft: 20,
-              width: 140,
-              textAlign: 'center',
-              cursor: 'pointer',
-              margin: '70px auto'
-            }}
+            style={{ display: 'flex', margin: '70px auto', justifyContent: 'center', width: 800, alignItems: 'center' }}
           >
-            Save
+            <div
+              style={{
+                borderRadius: 40,
+                backgroundImage: 'linear-gradient(253deg, #3ba5b4 0,#38ba8a 0% )',
+                boxShadow: '0 1px 14px rgba(0, 0, 0, 0.18)',
+                padding: '10px 20px',
+                color: 'white',
+                marginLeft: 20,
+                width: 140,
+                textAlign: 'center',
+                cursor: 'pointer'
+              }}
+            >
+              Save
+            </div>
+            <div style={{ color: 'red', marginLeft: 20 }}>Close account</div>
           </div>
         </div>
       </div>

@@ -16,7 +16,7 @@ class TableHeader extends Component {
           boxShadow: '0 1px 25px rgba(0, 0, 0, 0.05)'
         }}
       >
-        <div style={{ fontWeight: 900, fontSize: 35, padding: '30px 0' }}>Welcome Back Admin!</div>
+        <div style={{ fontWeight: 900, fontSize: 35, padding: '30px 0' }}>{this.props.text}</div>
         <img src={welcome} alt="welcome" style={{ height: 100, position: 'absolute', right: 0, bottom: 0 }} />
       </div>
     )
