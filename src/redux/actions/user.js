@@ -1,4 +1,16 @@
 import {
+  GOOGLE_LOGIN_STARTED,
+  GOOGLE_LOGIN_SUCCEEDED,
+  GOOGLE_LOGIN_FAILED,
+  FB_LOGIN_STARTED,
+  FB_LOGIN_SUCCEEDED,
+  FB_LOGIN_FAILED,
+  TWITTER_LOGIN_STARTED,
+  TWITTER_LOGIN_SUCCEEDED,
+  TWITTER_LOGIN_FAILED,
+  USER_SIGNUP_STARTED,
+  USER_SIGNUP_SUCCEEDED,
+  USER_SIGNUP_FAILED,
   GET_USER_STARTED,
   GET_USER_SUCCEEDED,
   GET_USERS_FAILED,
@@ -26,136 +38,136 @@ import {
 } from '../actionTypes'
 import { RSAA } from 'redux-api-middleware'
 import config from '../../config'
+import * as firebase from 'firebase/app'
 
-export function getUser(userId, token) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/getUser/${userId != null ? userId : ''}`,
-        types: [GET_USER_STARTED, GET_USER_SUCCEEDED, GET_USERS_FAILED],
-        headers: {
-          Authorization: token
-        },
-        method: 'get'
-      }
-    })
+export function signIn(email, password) {
+  return function(dispatch) {
+    dispatch({ type: USER_LOGIN_STARTED })
+    return firebase
+      .auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(() => {
+        firebase
+          .auth()
+          .currentUser.getIdToken()
+          .then(data => {
+            dispatch({ type: USER_LOGIN_SUCCEEDED, payload: { token: data } })
+          })
+      })
+      .catch(error => {
+        dispatch({ type: USER_LOGIN_FAILED, payload: error.message })
+      })
   }
 }
 
-export function editUserCalories(userId, token, expectedCalories) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/editUser/${userId != null ? userId : ''}`,
-        types: [EDIT_USER_CALORIES_STARTED, EDIT_USER_CALORIES_SUCCEEDED, EDIT_USER_CALORIES_FAILED],
-        headers: {
-          Authorization: token
-        },
-        method: 'post',
-        body: JSON.stringify({
-          expectedCalories
-        })
-      }
+const storeNewUser = (name, role) => {
+  firebase
+    .firestore()
+    .collection('private')
+    .doc()
+    .set({
+      verified: false,
+      role
     })
+}
+
+export function signUp(name, email, password, role) {
+  return function(dispatch) {
+    dispatch({ type: USER_SIGNUP_STARTED })
+    return firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        firebase
+          .firestore()
+          .collection('users')
+          .doc()
+          .set({
+            verified: false,
+            name,
+            role
+          })
+          .then(() => {
+            storeNewUser(name, role)
+            firebase
+              .auth()
+              .signInWithEmailAndPassword(email, password)
+              .then(() => {
+                firebase.auth().currentUser.sendEmailVerification()
+                firebase
+                  .auth()
+                  .currentUser.getIdToken()
+                  .then(data => {
+                    dispatch({ type: USER_SIGNUP_SUCCEEDED, payload: { token: data } })
+                  })
+              })
+          })
+      })
+      .catch(error => {
+        dispatch({ type: USER_SIGNUP_FAILED, payload: error.message })
+      })
   }
 }
 
-export function userLogin(email, password) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/signIn`,
-        types: [USER_LOGIN_STARTED, USER_LOGIN_SUCCEEDED, USER_LOGIN_FAILED],
-        method: 'post',
-        body: JSON.stringify({
-          email,
-          password
-        })
-      }
-    })
+export function fbAuth() {
+  const provider = new firebase.auth.FacebookAuthProvider()
+  firebase.auth().languageCode = 'en_EN'
+
+  provider.setCustomParameters({
+    display: 'popup'
+  })
+
+  return function(dispatch) {
+    dispatch({ type: FB_LOGIN_STARTED })
+    return firebase
+      .auth()
+      .signInWithPopup(provider)
+      .then(() => {
+        dispatch({ type: FB_LOGIN_SUCCEEDED })
+      })
+      .catch(error => {
+        dispatch({ type: FB_LOGIN_FAILED, payload: error.message })
+      })
   }
 }
 
-export function deleteUser(id, token) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/deleteUser/${id}`,
-        types: [DELETE_USER_STARTED, DELETE_USER_SUCCEEDED, UDELETE_USER_FAILED],
-        method: 'delete',
-        headers: {
-          Authorization: token
-        }
-      }
-    })
+export function twitterAuth() {
+  const provider = new firebase.auth.TwitterAuthProvider()
+  provider.setCustomParameters({
+    display: 'popup'
+  })
+
+  return function(dispatch) {
+    dispatch({ type: TWITTER_LOGIN_STARTED })
+    return firebase
+      .auth()
+      .signInWithPopup(provider)
+      .then(() => {
+        dispatch({ type: TWITTER_LOGIN_SUCCEEDED })
+      })
+      .catch(error => {
+        dispatch({ type: TWITTER_LOGIN_FAILED, payload: error.message })
+      })
   }
 }
 
-export function getAllUsers(token, page) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/getAllUsers/${page}`,
-        types: [GET_ALL_USERS_STARTED, GET_ALL_USERS_SUCCEEDED, GET_ALL_USERS_FAILED],
-        method: 'get',
-        headers: {
-          Authorization: token
-        }
-      }
-    })
-  }
-}
+export function googleAuth() {
+  const provider = new firebase.auth.GoogleAuthProvider()
+  provider.setCustomParameters({
+    display: 'popup'
+  })
 
-export function editUser(viewId, token, role) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/editUser/${viewId}`,
-        types: [EDIT_USER_STARTED, EDIT_USER_SUCCEEDED, EDIT_USER_FAILED],
-        headers: {
-          Authorization: token
-        },
-        method: 'post',
-        body: JSON.stringify({
-          role
-        })
-      }
-    })
-  }
-}
-
-export function addNewUser(email, password, role, token) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/createUser`,
-        types: [ADD_NEW_USER_STARTED, ADD_NEW_USER_SUCCEEDED, ADD_NEW_USER_FAILED],
-        method: 'post',
-        headers: {
-          Authorization: token
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          role
-        })
-      }
-    })
-  }
-}
-
-export function userSignUp(email, password) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/signUp`,
-        types: [SIGN_UP_USER_STARTED, SIGN_UP_USER_SUCCEEDED, SIGN_UP_USER_FAILED],
-        method: 'post',
-        body: JSON.stringify({
-          email,
-          password
-        })
-      }
-    })
+  return function(dispatch) {
+    dispatch({ type: GOOGLE_LOGIN_STARTED })
+    return firebase
+      .auth()
+      .signInWithPopup(provider)
+      .then(() => {
+        // redirect to login page
+        dispatch({ type: GOOGLE_LOGIN_SUCCEEDED })
+      })
+      .catch(error => {
+        dispatch({ type: GOOGLE_LOGIN_FAILED, payload: error.message })
+      })
   }
 }

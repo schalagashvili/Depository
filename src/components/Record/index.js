@@ -21,7 +21,7 @@ class RecordItem extends Component {
     } = this.props
 
     return (
-      <Record key={id}>
+      <Record key={title}>
         {totalCalories > expectedCalories ? (
           <FontAwesomeIcon icon={faExclamationCircle} style={{ color: colors.pink, marginRight: 15 }} />
         ) : (
@@ -29,8 +29,6 @@ class RecordItem extends Component {
         )}
         <Title>{title}</Title>
         <Calories>{calories}</Calories>
-        <DateText>{moment(date).format('MM/DD/YYYY')}</DateText>
-        <Time>{moment(date).format('HH:mm')}</Time>
         <IconsWrapper>
           <Icon
             onClick={() => {

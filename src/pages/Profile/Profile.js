@@ -2,11 +2,39 @@ import React, { Component } from 'react'
 import { InputField } from '../../components'
 import profile from '../../assets/images/profile.png'
 import pencil from '../../assets/images/pencil.png'
+import ReactGA from 'react-ga'
+import { CSVLink } from 'react-csv'
+
+const headers = [
+  { label: 'First Name', key: 'firstname' },
+  { label: 'Last Name', key: 'lastname' },
+  { label: 'Email', key: 'email' }
+]
+
+const data = [
+  { firstname: 'Ahmed', lastname: 'Tomi', email: 'ah@smthing.co.com' },
+  { firstname: 'Raed', lastname: 'Labes', email: 'rl@smthing.co.com' },
+  { firstname: 'Yezzi', lastname: 'Min l3b', email: 'ymin@cocococo.com' }
+]
 
 class Profile extends Component {
+  onChangeHandler = event => {
+    ReactGA.event({
+      category: 'User',
+      action: 'Created an Account'
+    })
+    console.log(event.target.files[0])
+  }
+
   render() {
     return (
       <div
+        onclick={() => {
+          ReactGA.event({
+            category: 'User',
+            action: 'Created an Account'
+          })
+        }}
         style={{
           paddingLeft: 270,
           width: '100%',
@@ -40,16 +68,32 @@ class Profile extends Component {
                 boxShadow: '0 1px 15px rgba(0, 0, 0, 0.2)'
               }}
             />
-            <img
-              src={pencil}
-              alt="pencil"
-              style={{
-                width: 35,
-                height: 35,
-                marginLeft: -37,
-                marginTop: 100
-              }}
-            />
+            <div>
+              <img
+                src={pencil}
+                alt="pencil"
+                style={{
+                  width: 35,
+                  height: 35,
+                  marginLeft: -37,
+                  marginTop: 100
+                }}
+              />
+              <input
+                type="file"
+                name="file"
+                onChange={this.onChangeHandler}
+                accept="image/png, image/jpeg"
+                size={120}
+                style={
+                  {
+                    // marginLeft: -30,
+                    // marginTop: -15,
+                    // zIndex: -1
+                  }
+                }
+              />
+            </div>
             <div style={{ marginLeft: 40, display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontSize: 30 }}>Sandro Chalagashvili</div>
               <div style={{ color: '#AFAFAF' }}>Tbilisi, Georgia</div>
@@ -66,6 +110,9 @@ class Profile extends Component {
           <div
             style={{ display: 'flex', margin: '70px auto', justifyContent: 'center', width: 800, alignItems: 'center' }}
           >
+            <CSVLink data={data} headers={headers} filename={'proff.csv'} style={{ color: 'black' }}>
+              Download me
+            </CSVLink>
             <div
               style={{
                 borderRadius: 40,

@@ -14,12 +14,21 @@ import {
   ADD_NEW_USER_STARTED,
   ADD_NEW_USER_SUCCEEDED,
   ADD_NEW_USER_FAILED,
-  SIGN_UP_USER_STARTED,
-  SIGN_UP_USER_SUCCEEDED,
-  SIGN_UP_USER_FAILED,
+  USER_SIGNUP_STARTED,
+  USER_SIGNUP_SUCCEEDED,
+  USER_SIGNUP_FAILED,
   EDIT_USER_CALORIES_STARTED,
   EDIT_USER_CALORIES_SUCCEEDED,
-  EDIT_USER_CALORIES_FAILED
+  EDIT_USER_CALORIES_FAILED,
+  GOOGLE_LOGIN_STARTED,
+  GOOGLE_LOGIN_SUCCEEDED,
+  GOOGLE_LOGIN_FAILED,
+  FB_LOGIN_STARTED,
+  FB_LOGIN_SUCCEEDED,
+  FB_LOGIN_FAILED,
+  TWITTER_LOGIN_STARTED,
+  TWITTER_LOGIN_SUCCEEDED,
+  TWITTER_LOGIN_FAILED
 } from '../actionTypes'
 
 export default (state = {}, action) => {
@@ -37,6 +46,60 @@ export default (state = {}, action) => {
         data: action.payload
       }
     case GET_USERS_FAILED:
+      return {
+        loading: false,
+        errors: action.payload,
+        data: {}
+      }
+    case GOOGLE_LOGIN_STARTED:
+      return {
+        loading: true,
+        errors: {},
+        data: {}
+      }
+    case GOOGLE_LOGIN_SUCCEEDED:
+      return {
+        loading: false,
+        errors: {},
+        data: action.payload
+      }
+    case GOOGLE_LOGIN_FAILED:
+      return {
+        loading: false,
+        errors: action.payload,
+        data: {}
+      }
+    case FB_LOGIN_STARTED:
+      return {
+        loading: true,
+        errors: {},
+        data: {}
+      }
+    case FB_LOGIN_SUCCEEDED:
+      return {
+        loading: false,
+        errors: {},
+        data: action.payload
+      }
+    case FB_LOGIN_FAILED:
+      return {
+        loading: false,
+        errors: action.payload,
+        data: {}
+      }
+    case TWITTER_LOGIN_STARTED:
+      return {
+        loading: true,
+        errors: {},
+        data: {}
+      }
+    case TWITTER_LOGIN_SUCCEEDED:
+      return {
+        loading: false,
+        errors: {},
+        data: action.payload
+      }
+    case TWITTER_LOGIN_FAILED:
       return {
         loading: false,
         errors: action.payload,
@@ -114,19 +177,19 @@ export default (state = {}, action) => {
         errors: action.payload,
         data: {}
       }
-    case SIGN_UP_USER_STARTED:
+    case USER_SIGNUP_STARTED:
       return {
         loading: true,
         errors: {},
         data: {}
       }
-    case SIGN_UP_USER_SUCCEEDED:
+    case USER_SIGNUP_SUCCEEDED:
       return {
         loading: false,
         errors: {},
         data: action.payload
       }
-    case SIGN_UP_USER_FAILED:
+    case USER_SIGNUP_FAILED:
       return {
         loading: false,
         errors: action.payload,
@@ -150,6 +213,7 @@ export default (state = {}, action) => {
         errors: action.payload,
         data: {}
       }
+    default:
+      return state
   }
-  return state
 }

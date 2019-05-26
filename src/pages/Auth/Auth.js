@@ -20,9 +20,9 @@ import {
   AlternativeJoin,
   SocialIcon
 } from './styles'
-import { userLogin } from '../../redux/actions/user'
-import { isEmpty } from 'lodash'
+import { signIn, signUp, twitterAuth, googleAuth, fbAuth } from '../../redux/actions/user'
 import { connect } from 'react-redux'
+import { isEmpty } from 'lodash'
 import { bindActionCreators } from 'redux'
 import fb from '../../assets/images/facebook.png'
 import user from '../../assets/images/user.png'
@@ -35,8 +35,11 @@ import { TimelineMax, TweenMax, Power4 } from 'gsap'
 import { FormattedMessage } from 'react-intl'
 import { createBrowserHistory } from 'history'
 import { withCookies } from 'react-cookie'
+import * as firebase from 'firebase/app'
+import { withRouter } from 'react-router-dom'
 
 const history = createBrowserHistory()
+const tl = new TimelineMax()
 
 class Login extends Component {
   constructor(props) {
@@ -44,12 +47,14 @@ class Login extends Component {
 
     const { cookies } = props
     this.state = {
-      name: cookies.get('name') || 'Ben',
+      // name: cookies.get('name') || 'Ben',
+      name: '',
       email: '',
       password: '',
       passwordErrorText: '',
       emailErrorText: '',
       submitError: '',
+      backendErrorText: '',
       signUp: true
     }
 
@@ -65,18 +70,38 @@ class Login extends Component {
     this.email = React.createRef()
   }
 
+  static getDerivedStateFromProps(nextProps) {
+    if (!nextProps.loggedUser) {
+      // return nextProps.history.push('/')
+    }
+    return null
+  }
+
   onEmailChange(e) {
     const email = e.target.value
+    var tl = new TimelineMax()
+
     this.setState({ email })
 
-    if (!this.validateEmail(email)) {
+    if (this.validateEmail(email)) {
+      this.setState({ email, emailErrorText: '', emailError: 0 })
+      if (this.state.passwordErrorText === '') {
+        tl.to(this.errorBox.current, 0.6, { top: -150 })
+      }
+    }
+  }
+
+  onPasswordBlur = () => {
+    var tl = new TimelineMax()
+    const { password } = this.state
+
+    if (password == null || password.length < 6) {
+      tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
       this.setState({
-        emailErrorText: '* Please input valid email',
-        emailError: 1,
+        passwordErrorText: 'Password length should be 6 or more',
+        passwordError: 1,
         submitErrorText: ''
       })
-    } else {
-      this.setState({ email, emailErrorText: '', emailError: 0 })
     }
   }
 
@@ -85,51 +110,70 @@ class Login extends Component {
     var tl = new TimelineMax()
     this.setState({ password })
 
-    if (password == null || password.length < 6) {
-      tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
-      this.setState({
-        passwordErrorText: '* Password length should be 6 or more',
-        passwordError: 1,
-        submitErrorText: ''
-      })
-    } else {
-      tl.to(this.errorBox.current, 0.6, { top: -150 })
-
+    if (password !== null || password.length >= 6) {
+      if (this.state.emailErrorText === '') {
+        tl.to(this.errorBox.current, 0.6, { top: -150 })
+      }
       this.setState({ password, passwordErrorText: '', passwordError: 0 })
     }
   }
 
-  async onSubmit(login) {
-    const { emailError, passwordError1, password, email } = this.state
+  onSubmit = async () => {
+    const { emailError, passwordError1, password, email, name, signUp } = this.state
+    const role = 1
 
-    if (password === '' || email === '') {
-      return this.setState({
-        submitError: 1,
-        submitErrorText: '* Please fill in fields'
-      })
+    if (!signUp) {
+      return this.signInHandler()
+    }
+
+    if (password === '' || email === '' || (name === '' && signUp === true)) {
+      tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
+      return this.setState({ submitError: 1, submitErrorText: 'Please fill in fields' })
     }
 
     if (emailError === 1 || passwordError1 === 1) {
       return
     }
     this.setState({ submitError: 0, submitErrorText: '' })
-    const outerThis = this
 
-    await this.props.userLogin(email, password)
-    const user = this.props.loggedUser
+    await this.props.signUp(name, email, password, role)
+    this.checkErrors()
+  }
 
-    if (!isEmpty(user)) {
-      const token = user.token
-      const role = user.role
-      const email = user.email
-      login(role, token, email)
+  googleAuth = async () => {
+    await this.props.googleAuth()
+    this.checkErrors()
+  }
+
+  twitterAuth = async () => {
+    await this.props.twitterAuth()
+    this.checkErrors()
+  }
+
+  fbAuth = async () => {
+    await this.props.fbAuth()
+    this.checkErrors()
+  }
+
+  signInHandler = async () => {
+    const { email, password } = this.state
+    if (password === '' || email === '') {
+      tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
+      return this.setState({ submitError: 1, submitErrorText: 'Please fill in fields' })
+    }
+
+    this.setState({ submitError: 0, submitErrorText: '' })
+
+    await this.props.signIn(email, password)
+    this.checkErrors()
+  }
+
+  checkErrors = () => {
+    if (!isEmpty(this.props.user.errors)) {
+      this.setState({ backendErrorText: this.props.user.errors })
+      tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
     } else {
-      const errorStatus = this.props.errors.status
-
-      outerThis.setState({
-        submitError: 1,
-        submitErrorText: errorStatus === 401 ? '* Username and password dont match!' : '* Server error occurred...'
-      })
+      this.props.history.push('/dashboard/home')
     }
   }
 
@@ -147,24 +191,41 @@ class Login extends Component {
     }
 
     if (this.state.signUp) {
-      history.push({ pathname: '/signin' })
+      // history.push({ pathname: '/signin' })
       TweenMax.to(this.myRef.current, 0.8, { right: 400 })
       setTimeout(() => {
-        this.setState({ signUp: false, password: '', passwordError: '', submitError: '', email: '' })
+        this.setState({
+          signUp: false,
+          password: '',
+          passwordError: '',
+          submitError: '',
+          email: '',
+          emailErrorText: '',
+          passwordErrorText: ''
+        })
       }, 300)
       tl.to(this.myRef2.current, 0.4, { width: 600 })
         .to(this.myRef5.current, 0.2, { width: 350 }, 0)
         .set(this.myRef5.current, { right: 120 })
         .to(this.myRef2.current, 0.4, { left: 600 }, '-=0.15')
         .to(this.myRef3.current, 0.4, { left: -250, opacity: 0 }, 0)
+        .to(this.errorBox.current, 0, { top: -150 }, 0)
         .to(this.myRef2.current, 0.5, { left: 800 }, '-=0.15')
         .to(this.myRef5.current, 0.65, { width: 201 }, '-=0.5')
         .to(this.myRef4.current, 0.6, { right: 70, opacity: 1 }, '-=0.5')
     } else {
-      history.push({ pathname: '/signin' })
+      // history.push({ pathname: '/signup' })
       TweenMax.to(this.myRef.current, 1, { right: 0 })
       setTimeout(() => {
-        this.setState({ signUp: true, password: '', passwordError: '', submitError: '', email: '' })
+        this.setState({
+          signUp: true,
+          password: '',
+          passwordError: '',
+          submitError: '',
+          email: '',
+          emailErrorText: '',
+          passwordErrorText: ''
+        })
       }, 330)
       tl.to(this.myRef2.current, 0.4, { left: 600 })
         .to(this.myRef4.current, 0.6, { right: -250, opacity: 0 }, '-=0.5')
@@ -174,7 +235,21 @@ class Login extends Component {
         .to(this.myRef2.current, 0.3, { left: 0 }, '-=0.15')
         .to(this.myRef5.current, 0.65, { width: 201 }, '-=0.5')
         .to(this.myRef3.current, 0.7, { left: 55, opacity: 1 }, 0.7)
+        .to(this.errorBox.current, 0, { top: -150 }, 0)
         .to(this.myRef2.current, 0.5, { width: 400 }, '-=0.7')
+    }
+  }
+
+  onEmailBlur = () => {
+    var tl = new TimelineMax()
+
+    if (!this.validateEmail(this.state.email)) {
+      tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
+      this.setState({
+        emailErrorText: 'Please input valid email',
+        emailError: 1,
+        submitErrorText: ''
+      })
     }
   }
 
@@ -183,26 +258,8 @@ class Login extends Component {
     return re.test(email)
   }
 
-  signUpHandler = () => {
-    // const { emailError, passwordError, submitError } = this.state
-    var tl = new TimelineMax()
-    this.setState({ passwordError: 'kfjdls' })
-
-    // if (emailError || passwordError || submitError) {
-    tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
-    // }
-  }
-
   render() {
-    const {
-      // emailError,
-      passwordError,
-      // submitError,
-      // passwordErrorText,
-      // submitErrorText,
-      // emailErrorText,
-      signUp
-    } = this.state
+    const { backendErrorText, passwordErrorText, submitErrorText, emailErrorText, signUp } = this.state
 
     return (
       <Wrapper>
@@ -236,13 +293,18 @@ class Login extends Component {
           </Sidebar>
           <Form innerRef={this.myRef}>
             <Error innerRef={this.errorBox}>
-              <ErrorBox />
+              <ErrorBox
+                passwordError={passwordErrorText}
+                emailError={emailErrorText}
+                submitError={submitErrorText}
+                backendError={backendErrorText}
+              />
             </Error>
             <Title>{signUp ? <FormattedMessage id="createAccount" /> : <FormattedMessage id="loginTitle" />}</Title>
             <SocialMedia>
-              <SocialIcon alt="fb" src={fb} />
-              <SocialIcon alt="googlePlus" src={googlePlus} />
-              <SocialIcon alt="twitter" src={twitter} />
+              <SocialIcon alt="fb" src={fb} onClick={this.fbAuth} />
+              <SocialIcon alt="googlePlus" src={googlePlus} onClick={this.googleAuth} />
+              <SocialIcon alt="twitter" src={twitter} onClick={this.twitterAuth} />
             </SocialMedia>
             <AlternativeJoin>
               {signUp ? <FormattedMessage id="registrationLabel" /> : <FormattedMessage id="loginLabel" />}
@@ -254,8 +316,8 @@ class Login extends Component {
                     <InputField
                       type="text"
                       placeholder={placeholder}
-                      borderColor={passwordError && '#e01d5a'}
                       innerRef={this.name}
+                      onChange={e => this.setState({ name: e.target.value })}
                     />
                   )}
                 </FormattedMessage>
@@ -267,10 +329,11 @@ class Login extends Component {
                 {placeholder => (
                   <InputField
                     onChange={e => this.onEmailChange(e)}
+                    onBlur={this.onEmailBlur}
                     type="email"
                     value={this.state.email}
                     placeholder={placeholder}
-                    borderColor={passwordError === 1 && '#e01d5a'}
+                    borderColor={emailErrorText !== '' && '#e01d5a'}
                     innerRef={el => (this.email = el)}
                   />
                 )}
@@ -283,17 +346,18 @@ class Login extends Component {
                   <InputField
                     onChange={e => this.onPasswordChange(e)}
                     type="password"
+                    onBlur={this.onPasswordBlur}
                     value={this.state.password}
                     placeholder={placeholder}
-                    borderColor={passwordError === 1 && '#e01d5a'}
+                    borderColor={passwordErrorText !== '' && '#e01d5a'}
                   />
                 )}
               </FormattedMessage>
 
               <InputIcon alt="locked" src={locked} />
             </Icon>
-            <Button onClick={this.signUpHandler}>
-              {signUp ? <FormattedMessage id="signIn" /> : <FormattedMessage id="signUp" />}
+            <Button onClick={this.onSubmit}>
+              {signUp ? <FormattedMessage id="signUp" /> : <FormattedMessage id="signIn" />}
             </Button>
           </Form>
         </MainWrapper>
@@ -304,14 +368,17 @@ class Login extends Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    userLogin: bindActionCreators(userLogin, dispatch)
+    signIn: bindActionCreators(signIn, dispatch),
+    signUp: bindActionCreators(signUp, dispatch),
+    fbAuth: bindActionCreators(fbAuth, dispatch),
+    googleAuth: bindActionCreators(googleAuth, dispatch),
+    twitterAuth: bindActionCreators(twitterAuth, dispatch)
   }
 }
 
 const mapStateToProps = state => {
   return {
-    loggedUser: state.user.data,
-    errors: state.user.errors
+    user: state.user
   }
 }
 
@@ -319,4 +386,4 @@ const LoginComponent = connect(
   mapStateToProps,
   mapDispatchToProps
 )(Login)
-export default withCookies(LoginComponent)
+export default withCookies(withRouter(LoginComponent))

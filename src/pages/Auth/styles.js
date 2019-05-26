@@ -125,6 +125,7 @@ export const GuestWelcome = styled.div`
   z-index: 2;
   flex-direction: column;
   display: flex;
+  text-align: center;
   opacity: 0;
 `
 
@@ -208,6 +209,7 @@ export const AlternativeJoin = styled.div`
 `
 
 export const SocialIcon = styled.img`
+  cursor: pointer;
   width: 50px;
   height: 50px;
   margin-left: 10px;

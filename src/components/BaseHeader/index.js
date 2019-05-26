@@ -1,5 +1,5 @@
 import React from 'react'
-import { Header } from '../../pages/Logs/styles'
+import { Header } from '../../pages/Report/styles'
 import { Link } from 'react-router-dom'
 import { Button } from '../../styles/mixins'
 import colors from '../../styles/colors'

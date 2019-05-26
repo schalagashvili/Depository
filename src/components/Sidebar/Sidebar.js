@@ -41,72 +41,82 @@ class Sidebar extends Component {
           <div style={{ color: 'grey', fontSize: 14 }}>Hello Sandro!</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', marginTop: 30, marginLeft: 50 }}>
-          <div
-            style={{
-              marginTop: 35,
-              alignItems: 'center',
-              display: 'flex',
-              borderRight: '4px solid #38ba8a',
-              paddingTop: 5,
-              paddingBottom: 5,
-              cursor: 'pointer'
-            }}
-          >
-            <img src={home} style={{ width: 30, marginRight: 15, height: 30 }} />
-            Home
-          </div>
-          <div
-            style={{
-              marginTop: 35,
-              alignItems: 'center',
-              display: 'flex',
-              paddingTop: 5,
-              paddingBottom: 5,
-              cursor: 'pointer'
-            }}
-          >
-            <img src={users} style={{ width: 30, marginRight: 15, height: 30 }} />
-            Users
-          </div>
-          <div
-            style={{
-              marginTop: 35,
-              alignItems: 'center',
-              display: 'flex',
-              paddingTop: 5,
-              paddingBottom: 5,
-              cursor: 'pointer'
-            }}
-          >
-            <img src={settings} style={{ width: 30, marginRight: 15, height: 30 }} />
-            Profile
-          </div>
-          <div
-            style={{
-              marginTop: 35,
-              alignItems: 'center',
-              display: 'flex',
-              paddingTop: 5,
-              paddingBottom: 5,
-              cursor: 'pointer'
-            }}
-          >
-            <img src={calculator} style={{ width: 30, marginRight: 15, height: 30 }} />
-            Calculator
-          </div>
-          <div
-            style={{
-              marginTop: 35,
-              alignItems: 'center',
-              display: 'flex',
-              paddingTop: 5,
-              paddingBottom: 5,
-              cursor: 'pointer'
-            }}
-          >
-            <img src={report} style={{ width: 30, marginRight: 15, height: 30 }} />
-            Rev. Report
-          </div>
+          <a href="/dashboard/home" style={{ color: 'black' }}>
+            <div
+              style={{
+                marginTop: 35,
+                alignItems: 'center',
+                display: 'flex',
+                borderRight: '4px solid #38ba8a',
+                paddingTop: 5,
+                paddingBottom: 5,
+                cursor: 'pointer'
+              }}
+            >
+              <img src={home} style={{ width: 30, marginRight: 15, height: 30 }} />
+              Home
+            </div>
+          </a>
+          <a href="/dashboard/users" style={{ color: 'black' }}>
+            <div
+              style={{
+                marginTop: 35,
+                alignItems: 'center',
+                display: 'flex',
+                paddingTop: 5,
+                paddingBottom: 5,
+                cursor: 'pointer'
+              }}
+            >
+              <img src={users} style={{ width: 30, marginRight: 15, height: 30 }} />
+              Users
+            </div>
+          </a>
+          <a href="/dashboard/profile" style={{ color: 'black' }}>
+            <div
+              style={{
+                marginTop: 35,
+                alignItems: 'center',
+                display: 'flex',
+                paddingTop: 5,
+                paddingBottom: 5,
+                cursor: 'pointer'
+              }}
+            >
+              <img src={settings} style={{ width: 30, marginRight: 15, height: 30 }} />
+              Profile
+            </div>
+          </a>
+          <a href="/dashboard/calculator" style={{ color: 'black' }}>
+            <div
+              style={{
+                marginTop: 35,
+                alignItems: 'center',
+                display: 'flex',
+                paddingTop: 5,
+                paddingBottom: 5,
+                cursor: 'pointer'
+              }}
+            >
+              <img src={calculator} style={{ width: 30, marginRight: 15, height: 30 }} />
+              Calculator
+            </div>
+          </a>
+          <a href="/dashboard/report" style={{ color: 'black' }}>
+            <div
+              style={{
+                marginTop: 35,
+                alignItems: 'center',
+                display: 'flex',
+                paddingTop: 5,
+                paddingBottom: 5,
+                cursor: 'pointer'
+              }}
+            >
+              <img src={report} style={{ width: 30, marginRight: 15, height: 30 }} />
+              Rev. Report
+            </div>
+          </a>
         </div>
         <div
           style={{

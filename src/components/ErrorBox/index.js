@@ -1,12 +1,8 @@
-import React, { Component } from 'react'
+import React from 'react'
 import danger from '../../assets/images/danger.png'
 
-const ErrorBox = () => {
-  const errors = [
-    'Please provide valid email',
-    'Password must contain at least 8 character',
-    'Please fill in all fields'
-  ]
+const ErrorBox = ({ passwordError, emailError, submitError, backendError }) => {
+  const errors = [passwordError, emailError, submitError, backendError]
 
   return (
     <div
@@ -24,7 +20,10 @@ const ErrorBox = () => {
       <img src={danger} alt="danger" style={{ width: 30, height: 30 }} />
       <div style={{ marginLeft: 25, display: 'flex', flexDirection: 'column' }}>
         {errors.map((error, index) => {
-          return <div key={`${index}${error}`}>• {error} </div>
+          if (error !== '') {
+            return <div key={`${index}${error}`}>• {error} </div>
+          }
+          return null
         })}
       </div>
     </div>
