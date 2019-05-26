@@ -1,72 +1,22 @@
 import React, { Component } from 'react'
-import moment from 'moment-timezone'
 import { Wrapper, InnerWrapper, Records } from './styles'
-import { Button } from '../../styles/mixins'
-import {
-  Filter,
-  Record,
-  Settings,
-  AddRecord,
-  Header,
-  TableHeader,
-  Sidebar,
-  WelcomeHeader,
-  Chart,
-  Brief
-} from '../../components'
-import BaseHeader from '../../components/BaseHeader'
+import { Record, TableHeader, WelcomeHeader, Brief } from '../../components'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { addMealLog, editMealLog, getMealLogs, removeMealLog } from '../../redux/actions/deposit'
-import { getUser, editUserCalories } from '../../redux/actions/user'
+import { getActiveDeposistsQuantity, getDeposits, getNextDeposits } from '../../redux/actions/deposit'
 
 class Logs extends Component {
-  constructor(props) {
-    super(props)
-    const timeNow = new Date().toTimeString().substr(0, 5)
-    const dateNow = new Date().toISOString().substr(0, 10)
-    const yesterday = moment()
-      .subtract(1, 'days')
-      .toISOString()
-      .substr(0, 10)
-
-    this.state = {
-      expectedCalories: 0,
-      totalCalories: 0,
-      mealLogs: [
-        { title: 'sandro' },
-        { title: 'sandro' },
-        { title: 'sandro' },
-        { title: 'sandro' },
-        { title: 'sandro' }
-      ]
-    }
+  async componentDidMount() {
+    await this.props.getDeposits()
+    // await this.props.getActiveDeposistsQuantity()
   }
 
   renderRecords() {
-    let { mealLogs, totalCalories, expectedCalories } = this.state
-
-    if (mealLogs.length === 0) {
-      return <div>No logs to show</div>
+    if (this.props.deposits) {
+      return this.props.deposits.map((x, i) => {
+        return <Record title={x.data().bankName} key={x.data().bankName + x.data().createdAt + i} />
+      })
     }
-
-    return mealLogs.map(log => {
-      let { date, calories, title, _id } = log
-      date = moment(date).format('YYYY-MM-DD HH:mm')
-      return (
-        <Record
-          totalCalories={totalCalories}
-          expectedCalories={expectedCalories}
-          calories={calories}
-          title={title}
-          id={_id}
-          editOpenHandler={this.editOpenHandler}
-          handleChange={this.handleChange}
-          onDelete={this.onDelete}
-          date={date}
-        />
-      )
-    })
   }
 
   render() {
@@ -75,6 +25,10 @@ class Logs extends Component {
         <InnerWrapper>
           <WelcomeHeader text="Welcome Back Admin!" />
           <Brief />
+          <div onClick={() => this.props.getNextDeposits(this.props.deposits[this.props.deposits.length - 1])}>
+            Next
+          </div>
+          {/* <div>{this.props.deposits}</div> */}
           <Records>
             <TableHeader />
             {this.renderRecords()}
@@ -87,20 +41,15 @@ class Logs extends Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    // getUser: bindActionCreators(getUser, dispatch),
-    // getMealLogs: bindActionCreators(getMealLogs, dispatch),
-    // addMealLog: bindActionCreators(addMealLog, dispatch),
-    // editMealLog: bindActionCreators(editMealLog, dispatch),
-    // removeMealLog: bindActionCreators(removeMealLog, dispatch),
-    // editUserCalories: bindActionCreators(editUserCalories, dispatch)
+    getActiveDeposistsQuantity: bindActionCreators(getActiveDeposistsQuantity, dispatch),
+    getDeposits: bindActionCreators(getDeposits, dispatch),
+    getNextDeposits: bindActionCreators(getNextDeposits, dispatch)
   }
 }
 
 const mapStateToProps = state => {
   return {
-    // mealLogs: state.record.data,
-    // userInfo: state.user.data,
-    // newMealLog: state
+    deposits: state.deposit.data
   }
 }
 

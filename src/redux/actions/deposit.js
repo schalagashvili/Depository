@@ -1,93 +1,88 @@
-import {
-  ADD_RECORD_STARTED,
-  ADD_RECORD_SECCEEDED,
-  ADD_RECORD_FAILED,
-  GET_RECORDS_STARTED,
-  GET_RECORDS_SUCCEEDED,
-  GET_RECORDS_FAILED,
-  REMOVE_RECORD_STARTED,
-  REMOVE_RECORD_SUCCEEDED,
-  REMOVE_RECORD_FAILED,
-  EDIT_RECORD_STARTED,
-  EDIT_RECORD_SECCEEDED,
-  EDIT_RECORD_FAILED
-} from '../actionTypes'
-import { RSAA } from 'redux-api-middleware'
-import config from '../../config'
+import { GET_ACTIVE_DEPOSITS_QUANTITY } from '../actionTypes'
+import firebase from '../../firebase'
+const db = firebase.firestore()
 
-export function addMealLog(title, calories, date, token, userId) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/addMealLog/${userId != null ? userId : ''}`,
-        types: [ADD_RECORD_STARTED, ADD_RECORD_SECCEEDED, ADD_RECORD_FAILED],
-        headers: {
-          Authorization: token
-        },
-        method: 'post',
-        body: JSON.stringify({
-          title,
-          calories,
-          date
+export function getActiveDeposistsQuantity(email, password) {
+  return function(dispatch) {
+    const userRef = db.collection('users').doc('7yRn5TUGVHA3TMzspJQm')
+    const depositsRef = userRef.collection('deposits')
+    return depositsRef
+      .get()
+      .then(docs => {
+        let totalNumberOfActiveDeposits = 0
+        docs.forEach(doc => {
+          doc = doc.data()
+          if (new Date() <= new Date(doc.endDate)) {
+            totalNumberOfActiveDeposits += 1
+          }
         })
-      }
+        return Promise.resolve(totalNumberOfActiveDeposits)
+      })
+      .then(result => {
+        console.log('rezz')
+        dispatch({ type: GET_ACTIVE_DEPOSITS_QUANTITY, payload: result })
+      })
+  }
+}
+
+export function getDeposits() {
+  return function(dispatch) {
+    const userRef = db.collection('users').doc('7yRn5TUGVHA3TMzspJQm')
+    const depositsRef = userRef.collection('deposits')
+
+    const first = depositsRef
+      .where('endDate', '>', new Date().getDate())
+      .orderBy('endDate', 'desc')
+      .orderBy('createdAt', 'desc')
+      .limit(5)
+
+    first.get().then(snapshot => {
+      snapshot.docs.forEach(doc => {
+        // console.log(doc.data())
+      })
+      dispatch({ type: GET_ACTIVE_DEPOSITS_QUANTITY, payload: snapshot.docs })
+      // console.log(snapshot)
+      var last = snapshot.docs[snapshot.docs.length - 1]
     })
   }
 }
 
-export function editMealLog(title, calories, date, token, userId, editId) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/editMealLog/${editId}/${userId != null ? userId : ''}`,
-        types: [EDIT_RECORD_STARTED, EDIT_RECORD_SECCEEDED, EDIT_RECORD_FAILED],
-        headers: {
-          Authorization: token
-        },
-        method: 'POST',
-        body: JSON.stringify({
-          title,
-          calories,
-          date
-        })
-      }
+export function getNextDeposits(last) {
+  return function(dispatch) {
+    const userRef = db.collection('users').doc('7yRn5TUGVHA3TMzspJQm')
+    const depositsRef = userRef.collection('deposits')
+
+    var next = depositsRef
+      .where('endDate', '>', new Date().getDate())
+      .orderBy('endDate', 'desc')
+      // .orderBy('createdAt', 'desc')
+      .startAfter(last)
+      .limit(5)
+
+    next.get().then(snapshot => {
+      snapshot.docs.forEach(doc => {
+        // console.log(doc.data())
+      })
+      dispatch({ type: GET_ACTIVE_DEPOSITS_QUANTITY, payload: snapshot.docs })
+      // console.log(snapshot)
+      var last = snapshot.docs[snapshot.docs.length - 1]
     })
   }
 }
 
-export function getMealLogs(fromDate, toDate, fromTime, toTime, page, userId, token) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/getMealLogs/${userId != null ? userId : ''}`,
-        types: [GET_RECORDS_STARTED, GET_RECORDS_SUCCEEDED, GET_RECORDS_FAILED],
-        headers: {
-          Authorization: token
-        },
-        method: 'post',
-        body: JSON.stringify({
-          fromDate,
-          toDate,
-          fromTime,
-          toTime,
-          page
-        })
-      }
-    })
-  }
-}
+export function deleteUser(bankName, initialAmount, tax, interestRate, startDate, endDate) {
+  return function(dispatch) {
+    const userRef = db.collection('users').doc('7yRn5TUGVHA3TMzspJQm')
+    const depositsRef = userRef.collection('deposits')
 
-export function removeMealLog(userId, token, id) {
-  return async function(dispatch) {
-    await dispatch({
-      [RSAA]: {
-        endpoint: `${config.apiUrl}/removeMealLog/${id}/${userId != null ? userId : ''}`,
-        types: [REMOVE_RECORD_STARTED, REMOVE_RECORD_SUCCEEDED, REMOVE_RECORD_FAILED],
-        headers: {
-          Authorization: token
-        },
-        method: 'post'
-      }
+    depositsRef.doc().set({
+      bankName,
+      initialAmount,
+      tax,
+      interestRate,
+      startDate,
+      endDate,
+      createdAt: new Date().getTime()
     })
   }
 }
