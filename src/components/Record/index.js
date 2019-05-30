@@ -1,44 +1,73 @@
 import React, { Component } from 'react'
-import { Record, IconsWrapper, Title, Calories, DateText, Time, Icon } from './styles'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheckCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
+import { Record, IconsWrapper, Title, Calories, Icon } from './styles'
 import { DeleteIcon, EditIcon } from '../../assets/icons'
-import moment from 'moment-timezone'
 import colors from '../../styles/colors'
+import { withCookies } from 'react-cookie'
 
 class RecordItem extends Component {
+  onRoleChange = value => {
+    console.log(this.props.cookies.get('token'), 'tkn')
+    console.log('changed: ', value)
+    fetch('https://us-central1-depostore-c9fee.cloudfunctions.net/changeRole', {
+      body: JSON.stringify({
+        userId: this.props.id,
+        idToken: this.props.cookies.get('token'),
+        newRole: value
+      }),
+      method: 'post'
+    }).then(response => console.log(response))
+  }
+
+  deleteUser = () => {
+    fetch('https://us-central1-depostore-c9fee.cloudfunctions.net/deleteUser', {
+      body: JSON.stringify({
+        userId: this.props.id,
+        idToken: this.props.cookies.get('token')
+      }),
+      method: 'post'
+    }).then(response => console.log(response))
+  }
+
+  roleDefaulValue = () => {
+    const { role } = this.props
+
+    if (role === 1) {
+      return 1
+    } else if (role === 2) {
+      return 2
+    } else {
+      return 3
+    }
+  }
+
   render() {
-    const {
-      totalCalories,
-      expectedCalories,
-      calories,
-      title,
-      id,
-      editOpenHandler,
-      handleChange,
-      onDelete,
-      date
-    } = this.props
+    const { title, id, editOpenHandler, handleChange, onDelete, user } = this.props
 
     return (
       <Record key={title}>
-        {totalCalories > expectedCalories ? (
-          <FontAwesomeIcon icon={faExclamationCircle} style={{ color: colors.pink, marginRight: 15 }} />
-        ) : (
-          <FontAwesomeIcon icon={faCheckCircle} style={{ color: '#38ba8a', marginRight: 15 }} />
-        )}
         <Title>{title}</Title>
-        <Calories>{calories}</Calories>
+        {user && (
+          <Calories>
+            <select onChange={e => this.onRoleChange(e.target.value)} defaultValue={this.roleDefaulValue()}>
+              <option value={1}>Regular</option>
+              <option value={2}>Manager</option>
+              <option value={3}>Admin</option>
+            </select>
+          </Calories>
+        )}
         <IconsWrapper>
-          <Icon
-            onClick={() => {
-              editOpenHandler(false, id)
-              handleChange('addBottom', true)
-            }}
-          >
-            <EditIcon width={13} height={13} color={colors.gray} />
-          </Icon>
-          <Icon onClick={() => onDelete(id)}>
+          {!user && (
+            <Icon
+              onClick={() => {
+                editOpenHandler(false, id)
+                handleChange('addBottom', true)
+              }}
+            >
+              <EditIcon width={13} height={13} color={colors.gray} />
+            </Icon>
+          )}
+
+          <Icon onClick={() => this.deleteUser()}>
             <DeleteIcon width={11} height={11} color={colors.tomato} />
           </Icon>
         </IconsWrapper>
@@ -47,4 +76,4 @@ class RecordItem extends Component {
   }
 }
 
-export default RecordItem
+export default withCookies(RecordItem)

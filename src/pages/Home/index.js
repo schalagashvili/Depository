@@ -1,22 +1,35 @@
 import React, { Component } from 'react'
 import { Wrapper, InnerWrapper, Records } from './styles'
-import { Record, TableHeader, WelcomeHeader, Brief } from '../../components'
+import { Deposit, TableHeader, WelcomeHeader, Brief } from '../../components'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { getActiveDeposistsQuantity, getDeposits, getNextDeposits } from '../../redux/actions/deposit'
+import { getActiveDeposistsQuantity, getDeposits, addDeposit } from '../../redux/actions/deposit'
+import { withCookies } from 'react-cookie'
 
 class Logs extends Component {
   async componentDidMount() {
-    await this.props.getDeposits()
-    // await this.props.getActiveDeposistsQuantity()
+    this.props.getDeposits(this.props.cookies.get('cookie'))
+    this.props.getActiveDeposistsQuantity(false, false, this.props.cookies.get('cookie'))
   }
 
-  renderRecords() {
-    if (this.props.deposits) {
-      return this.props.deposits.map((x, i) => {
-        return <Record title={x.data().bankName} key={x.data().bankName + x.data().createdAt + i} />
-      })
+  addDeposit = async () => {
+    const deposit = {
+      bankName: 'tralalala',
+      initialAmoount: 123,
+      interestRate: 3,
+      tax: 5,
+      startDate: new Date().getTime(),
+      endDate: new Date().getTime()
     }
+    await this.props.addDeposit(this.props.cookies.get('cookie'), deposit)
+    this.props.getDeposits(this.props.cookies.get('cookie'))
+  }
+
+  renderDeposits() {
+    return this.props.deposits.map((x, i) => {
+      console.log(x.data())
+      return <Deposit data={x.data()} key={x.data().bankName + x.data().createdAt + i} />
+    })
   }
 
   render() {
@@ -24,14 +37,20 @@ class Logs extends Component {
       <Wrapper>
         <InnerWrapper>
           <WelcomeHeader text="Welcome Back Admin!" />
-          <Brief />
-          <div onClick={() => this.props.getNextDeposits(this.props.deposits[this.props.deposits.length - 1])}>
-            Next
-          </div>
-          {/* <div>{this.props.deposits}</div> */}
+          <Brief deposistsQuantity={this.props.deposistsQuantity} />
           <Records>
-            <TableHeader />
-            {this.renderRecords()}
+            <TableHeader
+              next={() =>
+                this.props.getDeposits(
+                  this.props.cookies.get('cookie'),
+                  this.props.deposits[this.props.deposits.length - 1]
+                )
+              }
+              previous={() => this.props.getDeposits(this.props.cookies.get('cookie'), false, this.props.deposits[0])}
+              deposistsQuantity={this.props.deposistsQuantity}
+            />
+            <div onClick={() => this.addDeposit()}>add deposit</div>
+            {this.props.deposits && this.renderDeposits()}
           </Records>
         </InnerWrapper>
       </Wrapper>
@@ -43,13 +62,14 @@ const mapDispatchToProps = dispatch => {
   return {
     getActiveDeposistsQuantity: bindActionCreators(getActiveDeposistsQuantity, dispatch),
     getDeposits: bindActionCreators(getDeposits, dispatch),
-    getNextDeposits: bindActionCreators(getNextDeposits, dispatch)
+    addDeposit: bindActionCreators(addDeposit, dispatch)
   }
 }
 
 const mapStateToProps = state => {
   return {
-    deposits: state.deposit.data
+    deposits: state.deposit.data && state.deposit.data.deposits,
+    deposistsQuantity: state.deposit.data && state.deposit.data.depositsQuantity
   }
 }
 
@@ -57,4 +77,4 @@ const LogsComponent = connect(
   mapStateToProps,
   mapDispatchToProps
 )(Logs)
-export default LogsComponent
+export default withCookies(LogsComponent)

@@ -84,6 +84,7 @@ export const Records = styled.div`
   flex-direction: column;
   border-radius: 20px;
   background-color: white;
+  height: 481px;
   overflow: hidden;
   box-shadow: 0 1px 25px rgba(0, 0, 0, 0.05);
 `

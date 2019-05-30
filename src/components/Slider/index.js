@@ -13,6 +13,7 @@ class Slider2 extends React.Component {
 
   onSliderChange = value => {
     this.setState({ value })
+    this.props.onChange(this.props.identifier, value)
   }
 
   unitCorrector = () => {

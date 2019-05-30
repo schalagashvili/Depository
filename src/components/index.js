@@ -11,6 +11,7 @@ import Chart from './Chart'
 import Brief from './Brief'
 import WelcomeHeader from './WelcomeHeader'
 import Slider from './Slider'
+import Deposit from './Deposit'
 
 export {
   InputField,
@@ -25,5 +26,6 @@ export {
   WelcomeHeader,
   Chart,
   Brief,
-  Slider
+  Slider,
+  Deposit
 }

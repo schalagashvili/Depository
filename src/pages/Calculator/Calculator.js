@@ -4,7 +4,24 @@ import profile from '../../assets/images/profile.png'
 import pencil from '../../assets/images/pencil.png'
 
 class Profile extends Component {
+  state = { initialAmount: 10000, interestRate: 7, tax: 15, depositTerm: 12, totalSave: 0, totalProfit: 0 }
+
+  onChange = (key, value) => {
+    this.setState({ [key]: value })
+  }
+
+  calculation = () => {
+    const { initialAmount, interestRate, tax, depositTerm } = this.state
+    const totalSave = Math.round(initialAmount * Math.pow(1 + interestRate / 100 / 360, 360 * (depositTerm / 12)))
+    const totalProfit = totalSave - initialAmount
+    const profit = Math.round(totalProfit - (totalProfit * tax) / 100)
+    // shecdomit maqvs gaketebeuli
+    this.setState({ totalSave, totalProfit: profit })
+  }
+
   render() {
+    const { initialAmount, interestRate, tax, depositTerm, totalSave, totalProfit } = this.state
+
     return (
       <div
         style={{
@@ -34,9 +51,11 @@ class Profile extends Component {
               Deposit Calculator
             </div>
             <Slider
-              initialValue={10000}
+              initialValue={initialAmount}
+              onChange={this.onChange}
               step={100}
               max={100000}
+              identifier="initialAmount"
               title="Initial Amount"
               rangeMin="$1,000"
               rangeMax="$100,000"
@@ -44,8 +63,10 @@ class Profile extends Component {
               min={1000}
             />
             <Slider
-              initialValue={10}
+              initialValue={interestRate}
+              onChange={this.onChange}
               step={0.1}
+              identifier="interestRate"
               max={20}
               title="Interest Percentage"
               rangeMin="-20%"
@@ -53,10 +74,23 @@ class Profile extends Component {
               min={-20}
               unit="%"
             />
-            <Slider initialValue={15} step={0.1} max={40} title="Tax" rangeMin="0%" rangeMax="40%" unit="%" min={0} />
             <Slider
-              initialValue={12}
+              initialValue={tax}
+              onChange={this.onChange}
+              step={0.1}
+              identifier="tax"
+              max={40}
+              title="Tax"
+              rangeMin="0%"
+              rangeMax="40%"
+              unit="%"
+              min={0}
+            />
+            <Slider
+              initialValue={depositTerm}
+              onChange={this.onChange}
               step={1}
+              identifier="depositTerm"
               max={72}
               title="Deposit Term"
               rangeMin="1 mo."
@@ -72,12 +106,13 @@ class Profile extends Component {
                 padding: '10px 20px',
                 color: 'white',
                 marginLeft: 'auto',
-                marginRight: 70,
+                marginRight: 103,
                 marginTop: 45,
                 width: 140,
                 textAlign: 'center',
                 cursor: 'pointer'
               }}
+              onClick={this.calculation}
             >
               Calculate
             </div>
@@ -110,7 +145,7 @@ class Profile extends Component {
             }}
           >
             <div style={{ fontSize: 25, color: '#00a3e0' }}>Total Interest:</div>
-            <div style={{ fontSize: 35, fontWeight: 900, marginTop: 5, color: '#38ba8a' }}>$400</div>
+            <div style={{ fontSize: 35, fontWeight: 900, marginTop: 5, color: '#38ba8a' }}>${totalProfit}</div>
           </div>
           <div
             style={{
@@ -125,7 +160,7 @@ class Profile extends Component {
             }}
           >
             <div style={{ fontSize: 25, color: '#00a3e0' }}>Total Save:</div>
-            <div style={{ fontSize: 32, fontWeight: 900, marginTop: 5 }}>$7,000</div>
+            <div style={{ fontSize: 32, fontWeight: 900, marginTop: 5 }}>${totalSave}</div>
           </div>
           <div
             style={{
@@ -140,7 +175,7 @@ class Profile extends Component {
             }}
           >
             <div style={{ fontSize: 25, color: '#00a3e0' }}>Tax:</div>
-            <div style={{ fontSize: 32, fontWeight: 900, marginTop: 5 }}>2.1%</div>
+            <div style={{ fontSize: 32, fontWeight: 900, marginTop: 5 }}>{tax}%</div>
           </div>
           <div
             style={{
@@ -155,7 +190,7 @@ class Profile extends Component {
             }}
           >
             <div style={{ color: '#00a3e0', fontSize: 25 }}>Interest Rate:</div>
-            <div style={{ fontSize: 32, fontWeight: 900, marginTop: 5 }}>5.7%</div>
+            <div style={{ fontSize: 32, fontWeight: 900, marginTop: 5 }}>{interestRate}%</div>
           </div>
           <div
             style={{
@@ -170,7 +205,7 @@ class Profile extends Component {
             }}
           >
             <div style={{ color: '#00a3e0', fontSize: 25 }}>Deposit Term:</div>
-            <div style={{ fontSize: 27, fontWeight: 900, marginTop: 5 }}>12 mos.</div>
+            <div style={{ fontSize: 27, fontWeight: 900, marginTop: 5 }}>{depositTerm} mos.</div>
           </div>
         </div>
       </div>

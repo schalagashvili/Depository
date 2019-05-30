@@ -28,7 +28,9 @@ import {
   FB_LOGIN_FAILED,
   TWITTER_LOGIN_STARTED,
   TWITTER_LOGIN_SUCCEEDED,
-  TWITTER_LOGIN_FAILED
+  TWITTER_LOGIN_FAILED,
+  IMAGE_UPLOADED,
+  GET_USERS_SUCCEEDED
 } from '../actionTypes'
 
 export default (state = {}, action) => {
@@ -97,7 +99,7 @@ export default (state = {}, action) => {
       return {
         loading: false,
         errors: {},
-        data: action.payload
+        data: { token: action.payload }
       }
     case TWITTER_LOGIN_FAILED:
       return {
@@ -201,17 +203,17 @@ export default (state = {}, action) => {
         errors: {},
         data: {}
       }
-    case EDIT_USER_CALORIES_SUCCEEDED:
+    case GET_USERS_SUCCEEDED:
       return {
         loading: false,
         errors: {},
         data: action.payload
       }
-    case EDIT_USER_CALORIES_FAILED:
+    case IMAGE_UPLOADED:
       return {
         loading: false,
-        errors: action.payload,
-        data: {}
+        errors: {},
+        data: action.payload
       }
     default:
       return state

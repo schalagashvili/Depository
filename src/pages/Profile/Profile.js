@@ -1,35 +1,92 @@
 import React, { Component } from 'react'
 import { InputField } from '../../components'
 import profile from '../../assets/images/profile.png'
+import error from '../../assets/images/error.png'
+import checkmark from '../../assets/images/checkmark.png'
 import pencil from '../../assets/images/pencil.png'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import { editUser, uploadImage, getUser } from '../../redux/actions/user'
 import ReactGA from 'react-ga'
-import { CSVLink } from 'react-csv'
-
-const headers = [
-  { label: 'First Name', key: 'firstname' },
-  { label: 'Last Name', key: 'lastname' },
-  { label: 'Email', key: 'email' }
-]
-
-const data = [
-  { firstname: 'Ahmed', lastname: 'Tomi', email: 'ah@smthing.co.com' },
-  { firstname: 'Raed', lastname: 'Labes', email: 'rl@smthing.co.com' },
-  { firstname: 'Yezzi', lastname: 'Min l3b', email: 'ymin@cocococo.com' }
-]
+import { withCookies } from 'react-cookie'
+import '../../styles/styles.css'
 
 class Profile extends Component {
+  state = {
+    name: null,
+    address: null,
+    phone: null,
+    email: null,
+    image: null,
+    imgPreview: null,
+    smsCode: null
+  }
+
+  async componentDidMount() {
+    await this.props.getUser(this.props.cookies.get('cookie'))
+    const name = this.props.user && this.props.user.name
+    const address = this.props.user && this.props.user.address
+    const phone = this.props.user && this.props.user.phone
+    const email = this.props.user && this.props.user.email
+
+    this.setState({ name, address, phone, email })
+  }
+
   onChangeHandler = event => {
     ReactGA.event({
       category: 'User',
-      action: 'Created an Account'
+      action: 'Uploaded Image'
     })
-    console.log(event.target.files[0])
+    this.setState({ image: event.target.files[0], imgPreview: URL.createObjectURL(event.target.files[0]) })
+  }
+
+  onChange = (key, value) => {
+    this.setState({ [key]: value })
+    console.log(this.state.address, 'address', key, value)
+  }
+
+  onSave = async () => {
+    console.log(this.props.cookies.get('token'), this.state.name, this.state.address, this.state.phone)
+    await this.props.editUser(this.props.cookies.get('cookie'), this.state.name, this.state.address, this.state.phone)
+    await this.props.uploadImage(this.props.cookies.get('cookie'), this.state.image)
+    this.setState({ imgPreview: null })
+  }
+
+  verifyNumber = () => {
+    fetch('https://us-central1-depostore-c9fee.cloudfunctions.net/generateSMSCode', {
+      body: JSON.stringify({
+        idToken: this.props.cookies.get('token'),
+        userId: this.props.cookies.get('cookie'),
+        mobileNumber: '+995598960555'
+      }),
+      method: 'post'
+    }).then(res => console.log(res, 'ragac nitoa'))
+  }
+
+  verifySMSCode = () => {
+    fetch('https://us-central1-depostore-c9fee.cloudfunctions.net/verifySMSCode', {
+      body: JSON.stringify({
+        idToken: this.props.cookies.get('token'),
+        code: this.state.smsCode
+      }),
+      method: 'post'
+    }).then(res => console.log(res, 'ragac nitoa'))
   }
 
   render() {
+    const name = this.props.user && this.props.user.name
+    const address = this.props.user && this.props.user.address
+    const phone = this.props.user && this.props.user.phone
+    const email = this.props.user && this.props.user.email
+    const emailVerified = this.props.user && this.props.user.emailVerified
+    const image = this.props.user && this.props.user.thumbImg
+
+    if (!name) {
+      return <div>Loading</div>
+    }
     return (
       <div
-        onclick={() => {
+        onClick={() => {
           ReactGA.event({
             category: 'User',
             action: 'Created an Account'
@@ -58,7 +115,7 @@ class Profile extends Component {
         >
           <div style={{ display: 'flex', alignItems: 'center', width: 800, margin: 'auto' }}>
             <img
-              src={profile}
+              src={this.state.imgPreview || image}
               alt="profileImage"
               style={{
                 width: 200,
@@ -95,24 +152,56 @@ class Profile extends Component {
               />
             </div>
             <div style={{ marginLeft: 40, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: 30 }}>Sandro Chalagashvili</div>
-              <div style={{ color: '#AFAFAF' }}>Tbilisi, Georgia</div>
+              <div style={{ fontSize: 30 }}>{name}</div>
+              <div style={{ color: '#AFAFAF' }}>{address}</div>
             </div>
           </div>
           <div
             style={{ width: 800, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', margin: 'auto' }}
           >
-            <InputField title="Full Name" />
-            <InputField title="Email" />
-            <InputField title="Mobile" />
-            <InputField title="Location" />
+            <input onChange={e => this.setState({ smsCode: e.target.value })} />
+            <InputField
+              title="Full Name"
+              onChange={this.onChange}
+              identifier="name"
+              value={this.state.name}
+              defaultValue={name}
+            />
+            <div style={{ position: 'relative' }}>
+              <InputField disabled title="Email" defaultValue={email} />
+              <img
+                src={emailVerified ? checkmark : error}
+                style={{ width: 30, height: 30, position: 'absolute', right: 15, top: 83 }}
+              />
+            </div>
+            <div style={{ position: 'relative' }}>
+              <InputField
+                title="Mobile"
+                onChange={this.onChange}
+                identifier="phone"
+                value={this.state.phone}
+                defaultValue={phone}
+              />
+              <div onClick={this.verifyNumber}>verify</div>
+              <div onClick={this.verifySMSCode}>verify sms code</div>
+              {phone !== null && (
+                <img
+                  src={emailVerified ? checkmark : error}
+                  style={{ width: 30, height: 30, position: 'absolute', right: 15, top: 83 }}
+                />
+              )}
+            </div>
+            <InputField
+              title="Location"
+              onChange={this.onChange}
+              identifier="address"
+              value={this.state.address}
+              defaultValue={address}
+            />
           </div>
           <div
             style={{ display: 'flex', margin: '70px auto', justifyContent: 'center', width: 800, alignItems: 'center' }}
           >
-            <CSVLink data={data} headers={headers} filename={'proff.csv'} style={{ color: 'black' }}>
-              Download me
-            </CSVLink>
             <div
               style={{
                 borderRadius: 40,
@@ -125,10 +214,13 @@ class Profile extends Component {
                 textAlign: 'center',
                 cursor: 'pointer'
               }}
+              onClick={this.onSave}
             >
               Save
             </div>
-            <div style={{ color: 'red', marginLeft: 20 }}>Close account</div>
+            <div style={{ color: 'red', marginLeft: 20 }} onClick={() => this.props.uploadImage()}>
+              Close account
+            </div>
           </div>
         </div>
       </div>
@@ -136,4 +228,22 @@ class Profile extends Component {
   }
 }
 
-export default Profile
+const mapDispatchToProps = dispatch => {
+  return {
+    editUser: bindActionCreators(editUser, dispatch),
+    getUser: bindActionCreators(getUser, dispatch),
+    uploadImage: bindActionCreators(uploadImage, dispatch)
+  }
+}
+
+const mapStateToProps = state => {
+  return {
+    user: state.user && state.user.data
+  }
+}
+
+const ProfileComponent = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Profile)
+export default withCookies(ProfileComponent)

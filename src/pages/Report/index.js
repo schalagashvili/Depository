@@ -1,64 +1,62 @@
 import React, { Component } from 'react'
-import moment from 'moment-timezone'
 import { Wrapper, InnerWrapper, Records } from './styles'
-import { Button } from '../../styles/mixins'
-import {
-  Filter,
-  Record,
-  Settings,
-  AddRecord,
-  Header,
-  TableHeader,
-  Sidebar,
-  WelcomeHeader,
-  Chart,
-  Brief
-} from '../../components'
-import BaseHeader from '../../components/BaseHeader'
-import { connect } from 'react-redux'
+import { Filter, Deposit, TableHeader, WelcomeHeader, Chart, Brief } from '../../components'
 import { bindActionCreators } from 'redux'
-import { addMealLog, editMealLog, getMealLogs, removeMealLog } from '../../redux/actions/deposit'
-import { getUser, editUserCalories } from '../../redux/actions/user'
+import { connect } from 'react-redux'
 import filter from '../../assets/images/filter.png'
-import { TimelineMax, TweenMax, Power4 } from 'gsap'
+import { getDeposits } from '../../redux/actions/deposit'
+import { TimelineMax } from 'gsap'
+import { CSVLink } from 'react-csv'
+import { withCookies } from 'react-cookie'
+
+const headers = [
+  { label: 'Bank Name', key: 'bankName' },
+  { label: 'Initial Aomunt', key: 'initialAmount' },
+  { label: 'Interest Rate', key: 'interestRate' },
+  { label: 'Tax', key: 'tax' },
+  { label: 'Start Date', key: 'startDate' },
+  { label: 'End Date', key: 'endDate' }
+]
 
 class Logs extends Component {
-  constructor(props) {
-    super(props)
-    const timeNow = new Date().toTimeString().substr(0, 5)
-    const dateNow = new Date().toISOString().substr(0, 10)
-    const yesterday = moment()
-      .subtract(1, 'days')
-      .toISOString()
-      .substr(0, 10)
+  state = { finalProfitOrLoss: 0, results: [], showing: [], page: 1 }
 
-    this.myRef = React.createRef()
+  componentDidMount() {
+    fetch('https://us-central1-depostore-c9fee.cloudfunctions.net/generateRevenueReport', {
+      body: JSON.stringify({
+        idToken: this.props.cookies.get('token'),
+        from: new Date('2019-01-01').getTime(),
+        to: new Date().getTime()
+      }),
+      method: 'post'
+    }).then(response => {
+      const reader = response.body.getReader()
+      const stream = new ReadableStream({
+        start(controller) {
+          function push() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                controller.close()
+                return
+              }
+              controller.enqueue(value)
+              push()
+            })
+          }
+          push()
+        }
+      })
 
-    this.state = {
-      expectedCalories: 0,
-      totalCalories: 0,
-      mealLogs: [
-        { title: 'sandro' },
-        { title: 'sandro' },
-        { title: 'sandro' },
-        { title: 'sandro' },
-        { title: 'sandro' }
-      ],
-      fromDate: yesterday,
-      toDate: dateNow,
-      addBottom: false,
-      settingsBottom: false,
-      filterBottom: false,
-      page: 1,
-      today: dateNow,
-      logsCount: 0,
-      addTitle: '',
-      addCalories: '',
-      addDate: dateNow,
-      addTime: timeNow,
-      fromTime: timeNow,
-      toTime: timeNow
-    }
+      const a = new Response(stream)
+
+      a.json().then(res =>
+        this.setState({
+          finalProfitOrLoss: res.finalProfitOrLoss,
+          results: res.results,
+          showing: res.results.slice(0, 5)
+        })
+      )
+    })
   }
 
   handleChange = (state, value) => {
@@ -78,28 +76,38 @@ class Logs extends Component {
   }
 
   renderRecords() {
-    let { mealLogs, totalCalories, expectedCalories } = this.state
-
-    if (mealLogs.length === 0) {
-      return <div>No logs to show</div>
-    }
-
-    return mealLogs.map(log => {
-      let { date, calories, title, _id } = log
-      date = moment(date).format('YYYY-MM-DD HH:mm')
-      return <Record title={title} />
+    return this.state.showing.map((x, i) => {
+      console.log(x.startDate)
+      return <Deposit data={x} key={x.bankName + x.createdAt + i} />
     })
   }
 
+  previous = () => {
+    this.setState({
+      page: this.state.page - 1,
+      showing: this.state.results.slice((this.state.page - 2) * 5, (this.state.page - 2) * 5 + 5)
+    })
+    console.log((this.state.page - 2) * 5, (this.state.page - 2) * 5 + 5)
+  }
+
+  next = () => {
+    this.setState({
+      page: this.state.page + 1,
+      showing: this.state.results.slice(this.state.page * 5, this.state.page * 5 + 5)
+    })
+    console.log(this.state.page * 5, this.state.page * 5 + 5)
+  }
+
   render() {
-    const { settingsBottom, logsCount, mealLogs, page } = this.state
-    const dietBroken = this.state.totalCalories > this.state.expectedCalories
     return (
       <Wrapper>
-        <BaseHeader role={this.props.role} onLogout={this.props.logout} />
         <InnerWrapper>
           <WelcomeHeader text="Revenue Report" />
-          <Brief />
+          <Brief
+            report
+            deposistsQuantity={this.state.results.length}
+            finalProfitOrLoss={this.state.finalProfitOrLoss}
+          />
 
           <Records>
             <div
@@ -122,13 +130,26 @@ class Logs extends Component {
               alt="filter"
               onClick={this.openFilter}
             />
-            <TableHeader />
+            <TableHeader
+              next={this.next}
+              previous={this.previous}
+              total={this.state.results.length}
+              page={this.state.page}
+            />
+            <div style={{ position: 'absolute', top: 25, right: 500 }}>
+              <CSVLink
+                data={this.state.results}
+                headers={headers}
+                filename={`revenue_report`}
+                style={{ color: 'blue' }}
+              >
+                Export Report as CSV
+              </CSVLink>
+            </div>
+            <div onClick={() => this.props.getDeposits(this.props.cookies.get('cookie'), false, false, true)}>
+              filteeeeer
+            </div>
             {this.renderRecords()}
-            {logsCount > mealLogs.length && (
-              <Button onClick={() => this.loadMore(page)} color="lightGreen">
-                More
-              </Button>
-            )}
           </Records>
           <Chart />
         </InnerWrapper>
@@ -139,20 +160,13 @@ class Logs extends Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    // getUser: bindActionCreators(getUser, dispatch),
-    // getMealLogs: bindActionCreators(getMealLogs, dispatch),
-    // addMealLog: bindActionCreators(addMealLog, dispatch),
-    // editMealLog: bindActionCreators(editMealLog, dispatch),
-    // removeMealLog: bindActionCreators(removeMealLog, dispatch),
-    // editUserCalories: bindActionCreators(editUserCalories, dispatch)
+    getDeposits: bindActionCreators(getDeposits, dispatch)
   }
 }
 
 const mapStateToProps = state => {
   return {
     // mealLogs: state.record.data,
-    // userInfo: state.user.data,
-    // newMealLog: state
   }
 }
 
@@ -160,4 +174,4 @@ const LogsComponent = connect(
   mapStateToProps,
   mapDispatchToProps
 )(Logs)
-export default LogsComponent
+export default withCookies(LogsComponent)

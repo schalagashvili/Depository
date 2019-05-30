@@ -21,7 +21,10 @@ function InputField(props) {
       <div style={{ fontSize: 14, color: '#727272', marginBottom: 7, marginLeft: 5 }}>{props.title}</div>
       <input
         disabled={props.disabled}
-        value={unit}
+        defaultValue={props.defaultValue}
+        value={props.value}
+        // value={unit}
+        onChange={e => props.onChange(props.identifier, e.target.value)}
         style={{
           width: props.width || 350,
           height: props.height || 55,

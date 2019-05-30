@@ -20,7 +20,7 @@ import {
   AlternativeJoin,
   SocialIcon
 } from './styles'
-import { signIn, signUp, twitterAuth, googleAuth, fbAuth } from '../../redux/actions/user'
+import { signIn, signUp, twitterAuth, googleAuth, fbAuth, resetPassword } from '../../redux/actions/user'
 import { connect } from 'react-redux'
 import { isEmpty } from 'lodash'
 import { bindActionCreators } from 'redux'
@@ -70,8 +70,12 @@ class Login extends Component {
     this.email = React.createRef()
   }
 
+  componentDidMount() {
+    console.log(this.props.cookies.get('cookie'), 'kzzk')
+  }
+
   static getDerivedStateFromProps(nextProps) {
-    if (!nextProps.loggedUser) {
+    if (nextProps.cookies.get('cookie') !== undefined && nextProps.cookies.get('cookie') !== 'undefined') {
       // return nextProps.history.push('/')
     }
     return null
@@ -79,7 +83,6 @@ class Login extends Component {
 
   onEmailChange(e) {
     const email = e.target.value
-    var tl = new TimelineMax()
 
     this.setState({ email })
 
@@ -91,8 +94,30 @@ class Login extends Component {
     }
   }
 
+  onEmailBlur = () => {
+    if (!this.validateEmail(this.state.email)) {
+      tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
+      this.setState({
+        emailErrorText: 'Please input valid email',
+        emailError: 1,
+        submitErrorText: ''
+      })
+    }
+  }
+
+  onPasswordChange(e) {
+    const password = e.target.value
+    this.setState({ password })
+
+    if (password !== null || password.length >= 6) {
+      if (this.state.emailErrorText === '') {
+        tl.to(this.errorBox.current, 0.6, { top: -150 })
+      }
+      this.setState({ password, passwordErrorText: '', passwordError: 0 })
+    }
+  }
+
   onPasswordBlur = () => {
-    var tl = new TimelineMax()
     const { password } = this.state
 
     if (password == null || password.length < 6) {
@@ -102,19 +127,6 @@ class Login extends Component {
         passwordError: 1,
         submitErrorText: ''
       })
-    }
-  }
-
-  onPasswordChange(e) {
-    const password = e.target.value
-    var tl = new TimelineMax()
-    this.setState({ password })
-
-    if (password !== null || password.length >= 6) {
-      if (this.state.emailErrorText === '') {
-        tl.to(this.errorBox.current, 0.6, { top: -150 })
-      }
-      this.setState({ password, passwordErrorText: '', passwordError: 0 })
     }
   }
 
@@ -137,22 +149,22 @@ class Login extends Component {
     this.setState({ submitError: 0, submitErrorText: '' })
 
     await this.props.signUp(name, email, password, role)
-    this.checkErrors()
+    this.pushHandler()
   }
 
   googleAuth = async () => {
     await this.props.googleAuth()
-    this.checkErrors()
+    this.pushHandler()
   }
 
   twitterAuth = async () => {
     await this.props.twitterAuth()
-    this.checkErrors()
+    this.pushHandler()
   }
 
   fbAuth = async () => {
     await this.props.fbAuth()
-    this.checkErrors()
+    this.pushHandler()
   }
 
   signInHandler = async () => {
@@ -165,33 +177,29 @@ class Login extends Component {
     this.setState({ submitError: 0, submitErrorText: '' })
 
     await this.props.signIn(email, password)
-    this.checkErrors()
+    this.pushHandler()
   }
 
-  checkErrors = () => {
+  pushHandler = async () => {
     if (!isEmpty(this.props.user.errors)) {
       this.setState({ backendErrorText: this.props.user.errors })
       tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
     } else {
+      console.log(this.props.user.data.token, 'token')
+      await this.props.cookies.set('token', this.props.user.data.token)
+      await this.props.cookies.set('cookie', this.props.user.data.userId)
+      // await this.props.cookies.set('cookie', this.props.user.data.userId)
+      // console.log(this.props.cookies.get('cookie'), 'kflsdjl')
       this.props.history.push('/dashboard/home')
     }
   }
 
-  handleChange = name => event => {
-    this.setState({
-      [name]: event.target.value
-    })
-  }
-
   buttonHandler = () => {
-    var tl = new TimelineMax()
-    var tl2 = new TimelineMax()
     if (this.state.passwordError) {
-      tl2.to(this.errorBox.current, 0, { top: -150 }, 0.3)
+      tl.to(this.errorBox.current, 0, { top: -150 }, 0.3)
     }
 
     if (this.state.signUp) {
-      // history.push({ pathname: '/signin' })
       TweenMax.to(this.myRef.current, 0.8, { right: 400 })
       setTimeout(() => {
         this.setState({
@@ -208,13 +216,12 @@ class Login extends Component {
         .to(this.myRef5.current, 0.2, { width: 350 }, 0)
         .set(this.myRef5.current, { right: 120 })
         .to(this.myRef2.current, 0.4, { left: 600 }, '-=0.15')
-        .to(this.myRef3.current, 0.4, { left: -250, opacity: 0 }, 0)
+        .to(this.myRef3.current, 0.4, { left: -250, opacity: 0 }, 0.7)
         .to(this.errorBox.current, 0, { top: -150 }, 0)
         .to(this.myRef2.current, 0.5, { left: 800 }, '-=0.15')
         .to(this.myRef5.current, 0.65, { width: 201 }, '-=0.5')
         .to(this.myRef4.current, 0.6, { right: 70, opacity: 1 }, '-=0.5')
     } else {
-      // history.push({ pathname: '/signup' })
       TweenMax.to(this.myRef.current, 1, { right: 0 })
       setTimeout(() => {
         this.setState({
@@ -237,19 +244,6 @@ class Login extends Component {
         .to(this.myRef3.current, 0.7, { left: 55, opacity: 1 }, 0.7)
         .to(this.errorBox.current, 0, { top: -150 }, 0)
         .to(this.myRef2.current, 0.5, { width: 400 }, '-=0.7')
-    }
-  }
-
-  onEmailBlur = () => {
-    var tl = new TimelineMax()
-
-    if (!this.validateEmail(this.state.email)) {
-      tl.to(this.errorBox.current, 0.6, { top: 30, ease: Power4.easeOut })
-      this.setState({
-        emailErrorText: 'Please input valid email',
-        emailError: 1,
-        submitErrorText: ''
-      })
     }
   }
 
@@ -356,6 +350,7 @@ class Login extends Component {
 
               <InputIcon alt="locked" src={locked} />
             </Icon>
+            <div onClick={() => this.props.resetPassword()}>reset password</div>
             <Button onClick={this.onSubmit}>
               {signUp ? <FormattedMessage id="signUp" /> : <FormattedMessage id="signIn" />}
             </Button>
@@ -372,6 +367,7 @@ const mapDispatchToProps = dispatch => {
     signUp: bindActionCreators(signUp, dispatch),
     fbAuth: bindActionCreators(fbAuth, dispatch),
     googleAuth: bindActionCreators(googleAuth, dispatch),
+    resetPassword: bindActionCreators(resetPassword, dispatch),
     twitterAuth: bindActionCreators(twitterAuth, dispatch)
   }
 }

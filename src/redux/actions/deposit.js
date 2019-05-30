@@ -1,10 +1,10 @@
-import { GET_ACTIVE_DEPOSITS_QUANTITY } from '../actionTypes'
+import { GET_ACTIVE_DEPOSITS_QUANTITY, GET_DEPOSITS } from '../actionTypes'
 import firebase from '../../firebase'
 const db = firebase.firestore()
 
-export function getActiveDeposistsQuantity(email, password) {
+export function getActiveDeposistsQuantity(email, password, id) {
   return function(dispatch) {
-    const userRef = db.collection('users').doc('7yRn5TUGVHA3TMzspJQm')
+    const userRef = db.collection('users').doc(id)
     const depositsRef = userRef.collection('deposits')
     return depositsRef
       .get()
@@ -19,70 +19,108 @@ export function getActiveDeposistsQuantity(email, password) {
         return Promise.resolve(totalNumberOfActiveDeposits)
       })
       .then(result => {
-        console.log('rezz')
         dispatch({ type: GET_ACTIVE_DEPOSITS_QUANTITY, payload: result })
       })
   }
 }
 
-export function getDeposits() {
+export function addDeposit(id, deposit) {
   return function(dispatch) {
-    const userRef = db.collection('users').doc('7yRn5TUGVHA3TMzspJQm')
+    const userRef = db.collection('users').doc(id)
+    const depositsRef = userRef.collection('deposits').doc()
+
+    depositsRef
+      .set({
+        bankName: 'tralalala',
+        initialAmount: 123,
+        interestRate: 3,
+        tax: 5,
+        startDate: new Date('2019-01-01').getTime(),
+        endDate: new Date('2019-09-01').getTime(),
+        createdAt: new Date().getTime()
+      })
+      .then(res => console.log(res, 'ress'))
+      .catch(error => console.log(error, 'err'))
+  }
+}
+
+export function getDeposits(id, next, previous, filter) {
+  return function(dispatch) {
+    const userRef = db.collection('users').doc(id)
     const depositsRef = userRef.collection('deposits')
 
-    const first = depositsRef
-      .where('endDate', '>', new Date().getDate())
-      .orderBy('endDate', 'desc')
-      .orderBy('createdAt', 'desc')
-      .limit(5)
+    let deposits
 
-    first.get().then(snapshot => {
-      snapshot.docs.forEach(doc => {
-        // console.log(doc.data())
-      })
-      dispatch({ type: GET_ACTIVE_DEPOSITS_QUANTITY, payload: snapshot.docs })
-      // console.log(snapshot)
-      var last = snapshot.docs[snapshot.docs.length - 1]
+    if (next) {
+      deposits = depositsRef
+        .where('endDate', '>', new Date().getTime())
+        .orderBy('endDate', 'desc')
+        .orderBy('createdAt', 'desc')
+        .startAfter(next)
+        .limit(5)
+    } else if (previous) {
+      deposits = depositsRef
+        .where('endDate', '>', new Date().getTime())
+        .orderBy('endDate', 'desc')
+        .orderBy('createdAt', 'desc')
+        .endBefore(previous)
+        .limit(5)
+    } else if (filter) {
+      return filteredDeposits(id, filter, dispatch)
+    } else {
+      deposits = depositsRef
+        .where('endDate', '>', new Date().getTime())
+        .orderBy('endDate', 'desc')
+        .orderBy('createdAt', 'desc')
+        .limit(5)
+    }
+
+    return deposits.get().then(snapshot => {
+      dispatch({ type: GET_DEPOSITS, payload: snapshot.docs })
     })
   }
 }
 
-export function getNextDeposits(last) {
-  return function(dispatch) {
-    const userRef = db.collection('users').doc('7yRn5TUGVHA3TMzspJQm')
-    const depositsRef = userRef.collection('deposits')
+//startFrom, startTo, endFrom, endTo, initialMin, initialMax, bankName
+export function filteredDeposits(id, filter, dispatch) {
+  // const depositsRef = db
+  //   .collection('users')
+  //   .doc(id)
+  //   .collection('deposits')
 
-    var next = depositsRef
-      .where('endDate', '>', new Date().getDate())
-      .orderBy('endDate', 'desc')
-      // .orderBy('createdAt', 'desc')
-      .startAfter(last)
-      .limit(5)
+  // depositsRef
+  //   .where('initialAmount', '>=', initialMin)
+  //   .where('initialAmount', '<=', initialMax)
+  //   .where('bankName', '==', bankName)
+  const depositsRef = db
+    .collection('users')
+    .doc('Qi18hNlKCVaYUtLos4z78DT3KEb2')
+    .collection('deposits')
 
-    next.get().then(snapshot => {
-      snapshot.docs.forEach(doc => {
-        // console.log(doc.data())
+  const startFrom = 0
+  const startTo = 2000000000000000000000000000000000
+  const endFrom = 3
+  const endTo = 4000000000000000000000000000000000000
+  depositsRef
+    .where('initialAmount', '>=', 100)
+    .where('initialAmount', '<=', 5000)
+    .where('bankName', '==', 'tralalala')
+    .get()
+    .then(async docs => {
+      console.log(docs.size, 'zomaa')
+      let dataDocs = []
+      await docs.forEach(async doc => {
+        const docData = await doc.data()
+        if (
+          docData.startDate >= startFrom &&
+          docData.startDate <= startTo &&
+          docData.endDate >= endFrom &&
+          docData.endDate <= endTo
+        ) {
+          dataDocs.push(docData)
+        }
       })
-      dispatch({ type: GET_ACTIVE_DEPOSITS_QUANTITY, payload: snapshot.docs })
-      // console.log(snapshot)
-      var last = snapshot.docs[snapshot.docs.length - 1]
+      dispatch({ type: GET_DEPOSITS, payload: dataDocs })
+      console.log(dataDocs, 'kodebi')
     })
-  }
-}
-
-export function deleteUser(bankName, initialAmount, tax, interestRate, startDate, endDate) {
-  return function(dispatch) {
-    const userRef = db.collection('users').doc('7yRn5TUGVHA3TMzspJQm')
-    const depositsRef = userRef.collection('deposits')
-
-    depositsRef.doc().set({
-      bankName,
-      initialAmount,
-      tax,
-      interestRate,
-      startDate,
-      endDate,
-      createdAt: new Date().getTime()
-    })
-  }
 }

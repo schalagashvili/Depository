@@ -1,54 +1,29 @@
 import React, { Component } from 'react'
-import moment from 'moment-timezone'
 import { Wrapper, InnerWrapper, Records } from './styles'
-import { Button } from '../../styles/mixins'
-import {
-  Filter,
-  Record,
-  Settings,
-  AddRecord,
-  Header,
-  TableHeader,
-  Sidebar,
-  WelcomeHeader,
-  Chart,
-  Brief
-} from '../../components'
-import BaseHeader from '../../components/BaseHeader'
+import { Record, WelcomeHeader } from '../../components'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { addMealLog, editMealLog, getMealLogs, removeMealLog } from '../../redux/actions/deposit'
-import { getUser, editUserCalories } from '../../redux/actions/user'
+import { getUsers } from '../../redux/actions/users'
 import arrow from '../../assets/images/arrow.png'
 
 class Logs extends Component {
-  constructor(props) {
-    super(props)
+  state = { users: [] }
 
-    this.state = {
-      mealLogs: [
-        { title: 'sandro' },
-        { title: 'sandro' },
-        { title: 'sandro' },
-        { title: 'sandro' },
-        { title: 'sandro' }
-      ]
-    }
+  async componentDidMount() {
+    await this.props.getUsers(3)
+    // console.log(this.props.users[this.props.users.length - 1], 'usser')
+    console.log(this.props.users && this.props.users.length, 'usser')
   }
 
   renderRecords() {
-    let { mealLogs, totalCalories, expectedCalories } = this.state
-
-    if (mealLogs.length === 0) {
-      return <div>No logs to show</div>
-    }
-
-    return mealLogs.map(x => {
-      return <Record title={x.title} />
+    return this.props.users.map(x => {
+      console.log(x, 'xx')
+      return <Record user title={x.email} key={x.email} role={x.role} id={x.userId} />
     })
   }
 
   render() {
+    const lastUser = this.props.users && this.props.users[this.props.users.length - 1]
     return (
       <Wrapper>
         <InnerWrapper>
@@ -62,7 +37,7 @@ class Logs extends Component {
                   <div>
                     <img src={arrow} style={{ width: 17, height: 17, marginLeft: 25, cursor: 'pointer' }} />
                   </div>
-                  <div>
+                  <div onClick={() => this.props.getUsers(3, lastUser)}>
                     <img
                       src={arrow}
                       style={{ width: 17, height: 17, marginLeft: 20, transform: 'rotate(180deg)', cursor: 'pointer' }}
@@ -80,12 +55,12 @@ class Logs extends Component {
                   borderBottom: '2px solid #eff3f9'
                 }}
               >
-                <div>Name</div>
-                <div>Role</div>
                 <div>Email</div>
+                <div>Role</div>
+                <div />
               </div>
             </div>
-            {this.renderRecords()}
+            {this.props.users && this.renderRecords()}
           </Records>
         </InnerWrapper>
       </Wrapper>
@@ -95,13 +70,13 @@ class Logs extends Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    // getUser: bindActionCreators(getUser, dispatch),
+    getUsers: bindActionCreators(getUsers, dispatch)
   }
 }
 
 const mapStateToProps = state => {
   return {
-    // mealLogs: state.record.data,
+    users: state.users && state.users.data
   }
 }
 
