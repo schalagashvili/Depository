@@ -10,7 +10,7 @@
     "axios": "^0.18.0",
     "date-fns": "^2.0.0-alpha.27",
     "firebase": "^6.0.4",
-    "firebase-admin": "^8.0.0",
+    "firebase-admin": "^11.4.1",
     "gsap": "^2.1.2",
     "http2": "^3.3.7",
     "lodash": "^4.17.11",
